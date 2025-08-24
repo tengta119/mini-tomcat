@@ -11,7 +11,8 @@ target/
 *.iws
 *.iml
 *.ipr
-
+.webroot
+.idea/**
 ### Eclipse ###
 .apt_generated
 .classpath
