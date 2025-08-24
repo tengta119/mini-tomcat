@@ -3,9 +3,12 @@ package com.lbwxxc.server;
 
 import org.apache.commons.lang3.text.StrSubstitutor;
 
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -41,6 +44,7 @@ public class ServletProcessor {
 
     public void process(Request request, Response response) {
         String uir = request.getUri();
+        String ServletName = uir.substring(uir.lastIndexOf('/') + 1);
         URLClassLoader loader;
 
         try {
@@ -54,18 +58,19 @@ public class ServletProcessor {
             throw new RuntimeException(e);
         }
 
-        String ServletName = "com.lbwxxc.server.HelloServlet";
+        ServletName = "com.lbwxxc.server.HelloServlet";
         Class<?> servletClass;
-
+        ClassLoader classLoader = this.getClass().getClassLoader();
         try {
-            servletClass = this.getClass().getClassLoader().loadClass(ServletName);
+            servletClass = classLoader.loadClass(ServletName);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
 
-        OutputStream out = response.getOut();
+        PrintWriter writer;
         try {
-            out.write(composeResponseHead().getBytes(StandardCharsets.UTF_8));
+            writer = response.getWriter();
+            writer.println(composeResponseHead());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -74,15 +79,10 @@ public class ServletProcessor {
         try {
             servlet = (Servlet) servletClass.newInstance();
             servlet.service(request, response);
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | ServletException | IOException e) {
             throw new RuntimeException(e);
         }
 
-        try {
-            out.flush();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 

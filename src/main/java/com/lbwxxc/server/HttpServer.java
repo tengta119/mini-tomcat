@@ -54,6 +54,7 @@ public class HttpServer {
                 Response response = new Response(request, outputStream);
 
                 if (request.getUri().startsWith("/servlet/")) {
+                    log.info("访问动态资源");
                     ServletProcessor servletProcessor = new ServletProcessor();
                     servletProcessor.process(request, response);
                 } else {

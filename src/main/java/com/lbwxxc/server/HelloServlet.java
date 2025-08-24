@@ -1,8 +1,8 @@
 package com.lbwxxc.server;
 
 
+import javax.servlet.*;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author lbwxxc
@@ -12,7 +12,17 @@ import java.nio.charset.StandardCharsets;
 public class HelloServlet implements Servlet {
 
     @Override
-    public void service(Request req, Response res) {
+    public void init(ServletConfig servletConfig) throws ServletException {
+
+    }
+
+    @Override
+    public ServletConfig getServletConfig() {
+        return null;
+    }
+
+    @Override
+    public void service(ServletRequest servletRequest, ServletResponse servletResponse) {
         String doc = """
                 <!DOCTYPE html>
                 <html>
@@ -21,9 +31,20 @@ public class HelloServlet implements Servlet {
                 <h1 align="center">Hello World 你好</h1>
                 """;
         try {
-            res.getOut().write(doc.getBytes(StandardCharsets.UTF_8));
+            servletResponse.getWriter().println(doc);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public String getServletInfo() {
+        return "";
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+
 }
