@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * @author lbwxxc
@@ -18,12 +20,21 @@ public class HttpConnector implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(HttpConnector.class);
 
+    int minProcessors = 3;
+    int maxProcessors = 10;
+    int curProcessor = 0;
+    final Deque<HttpProcessor> processors = new ArrayDeque<>();
+
     @Override
     public void run() {
         ServerSocket serverSocket;
         int port = 8080;
         try {
             serverSocket = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
+            for (int i = 0; i < minProcessors; i++) {
+                processors.add(new HttpProcessor());
+            }
+            curProcessor = minProcessors;
             log.info("服务器启动成功");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -32,14 +43,35 @@ public class HttpConnector implements Runnable {
         while (true) {
             try {
                 Socket socket = serverSocket.accept();
-                HttpProcessor httpProcessor = new HttpProcessor();
-                httpProcessor.process(socket);
+                HttpProcessor processor = getProcessor();
+                if (processor == null) {
+                    socket.close();
+                    log.error("processor 已耗尽");
+                } else {
+                    processor.process(socket);
+                }
+                processors.addLast(processor);
                 socket.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
         }
+    }
+
+    public HttpProcessor getProcessor() {
+        synchronized (processors) {
+            if (!processors.isEmpty()) {
+                return processors.poll();
+            } else {
+                if (curProcessor < maxProcessors) {
+                    curProcessor++;
+                    return new HttpProcessor();
+                }
+            }
+        }
+
+        return null;
     }
 
     public void start() {

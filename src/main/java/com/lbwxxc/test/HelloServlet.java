@@ -1,4 +1,4 @@
-package com.lbwxxc.server;
+package com.lbwxxc.test;
 
 
 import javax.servlet.*;

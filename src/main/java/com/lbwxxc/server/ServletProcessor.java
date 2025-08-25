@@ -7,13 +7,10 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandler;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -58,7 +55,7 @@ public class ServletProcessor {
             throw new RuntimeException(e);
         }
 
-        ServletName = "com.lbwxxc.server.HelloServlet";
+        ServletName = "com.lbwxxc.test.HelloServlet";
         Class<?> servletClass;
         ClassLoader classLoader = this.getClass().getClassLoader();
         try {
