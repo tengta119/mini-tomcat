@@ -32,7 +32,9 @@ public class HttpConnector implements Runnable {
         try {
             serverSocket = new ServerSocket(port, 1, InetAddress.getByName("127.0.0.1"));
             for (int i = 0; i < minProcessors; i++) {
-                processors.add(new HttpProcessor());
+                HttpProcessor processor = new HttpProcessor(this);
+                processor.start();
+                processors.add(processor);
             }
             curProcessor = minProcessors;
             log.info("服务器启动成功");
@@ -48,10 +50,8 @@ public class HttpConnector implements Runnable {
                     socket.close();
                     log.error("processor 已耗尽");
                 } else {
-                    processor.process(socket);
+                    processor.assign(socket);
                 }
-                processors.addLast(processor);
-                socket.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -66,12 +66,16 @@ public class HttpConnector implements Runnable {
             } else {
                 if (curProcessor < maxProcessors) {
                     curProcessor++;
-                    return new HttpProcessor();
+                    return new HttpProcessor(this);
                 }
             }
         }
 
         return null;
+    }
+
+    void recycle(HttpProcessor processor) {
+        processors.push(processor);
     }
 
     public void start() {
