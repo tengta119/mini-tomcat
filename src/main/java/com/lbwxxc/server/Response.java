@@ -16,36 +16,19 @@ public class Response implements ServletResponse {
 
     Request request;
     OutputStream output;
-    int BUFFER_SIZE = 1024;
     PrintWriter printWriter;
     public Response(Request request, OutputStream out) {
         this.request = request;
         this.output = out;
     }
 
-    public Request getRequest() {
-        return request;
-    }
 
-    public void setRequest(Request request) {
-        this.request = request;
-    }
 
     public OutputStream getOut() {
         return output;
     }
 
-    public void setOut(OutputStream out) {
-        this.output = out;
-    }
 
-    public int getBUFFER_SIZE() {
-        return BUFFER_SIZE;
-    }
-
-    public void setBUFFER_SIZE(int BUFFER_SIZE) {
-        this.BUFFER_SIZE = BUFFER_SIZE;
-    }
 
     @Override
     public String getCharacterEncoding() {
@@ -58,7 +41,7 @@ public class Response implements ServletResponse {
     }
 
     @Override
-    public ServletOutputStream getOutputStream() throws IOException {
+    public ServletOutputStream getOutputStream() {
         return null;
     }
 
@@ -101,7 +84,7 @@ public class Response implements ServletResponse {
     }
 
     @Override
-    public void flushBuffer() throws IOException {
+    public void flushBuffer() {
 
     }
 

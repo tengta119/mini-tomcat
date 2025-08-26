@@ -53,7 +53,8 @@ public class HttpConnector implements Runnable {
                     processor.assign(socket);
                 }
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                log.error("", e);
+                break;
             }
 
         }
