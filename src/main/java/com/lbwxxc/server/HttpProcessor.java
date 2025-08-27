@@ -51,19 +51,19 @@ public class HttpProcessor implements Runnable {
     public void process(Socket socket) {
         try {
             InputStream inputStream = socket.getInputStream();
-            Request request = new Request(inputStream);
-            request.parse();
+            HttpRequest httpRequest = new HttpRequest(inputStream);
+            httpRequest.parse(socket);
 
             OutputStream outputStream = socket.getOutputStream();
-            Response response = new Response(request, outputStream);
+            Response response = new Response(httpRequest, outputStream);
 
-            if (request.getUri().startsWith("/servlet/")) {
+            if (httpRequest.getUri().startsWith("/servlet/")) {
                 log.info("访问动态资源");
                 ServletProcessor servletProcessor = new ServletProcessor();
-                servletProcessor.process(request, response);
+                servletProcessor.process(httpRequest, response);
             } else {
                 StaticResourceProcessor staticResourceProcessor = new StaticResourceProcessor();
-                staticResourceProcessor.process(request, response);
+                staticResourceProcessor.process(httpRequest, response);
             }
 
             socket.close();

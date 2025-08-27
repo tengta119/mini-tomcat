@@ -14,21 +14,18 @@ import java.util.Locale;
  */
 public class Response implements ServletResponse {
 
-    Request request;
+    HttpRequest request;
     OutputStream output;
     PrintWriter printWriter;
-    public Response(Request request, OutputStream out) {
+    public Response(HttpRequest request, OutputStream out) {
         this.request = request;
         this.output = out;
     }
 
 
-
     public OutputStream getOut() {
         return output;
     }
-
-
 
     @Override
     public String getCharacterEncoding() {

@@ -34,7 +34,7 @@ public class StaticResourceProcessor {
             \r
             """;
 
-    public void process(Request request, Response response) {
+    public void process(HttpRequest request, Response response) {
         try (FileInputStream fis = new FileInputStream(new File(HttpServer.WEB_ROOT, request.getUri()))) {
 
             OutputStream out = response.getOut();
