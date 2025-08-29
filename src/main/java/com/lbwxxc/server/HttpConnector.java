@@ -4,12 +4,16 @@ package com.lbwxxc.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author lbwxxc
@@ -24,7 +28,8 @@ public class HttpConnector implements Runnable {
     int maxProcessors = 10;
     int curProcessor = 0;
     final Deque<HttpProcessor> processors = new ArrayDeque<>();
-
+    // sessions map 存放 session
+    public static Map<String, HttpSession> sessions = new ConcurrentHashMap<>();
     @Override
     public void run() {
         ServerSocket serverSocket;
@@ -73,6 +78,38 @@ public class HttpConnector implements Runnable {
         }
 
         return null;
+    }
+
+    public static Session createSession() {
+        Session session = new Session();
+        session.setValid(true);
+        session.setCreationTime(System.currentTimeMillis());
+        String sessionId = generateSessionId();
+        session.setId(sessionId);
+        sessions.put(sessionId, session);
+        return (session);
+    }
+
+    protected static synchronized String generateSessionId() {
+        Random random = new Random();
+        long seed = System.currentTimeMillis();
+        random.setSeed(seed);
+        byte[] bytes = new byte[16];
+        random.nextBytes(bytes);
+        StringBuilder result = new StringBuilder();
+        for (byte aByte : bytes) {
+            byte b1 = (byte) ((aByte & 0xf0) >> 4);
+            byte b2 = (byte) (aByte & 0x0f);
+            if (b1 < 10)
+                result.append((char) ('0' + b1));
+            else
+                result.append((char) ('A' + (b1 - 10)));
+            if (b2 < 10)
+                result.append((char) ('0' + b2));
+            else
+                result.append((char) ('A' + (b2 - 10)));
+        }
+        return (result.toString());
     }
 
     void recycle(HttpProcessor processor) {

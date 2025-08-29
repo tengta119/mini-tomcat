@@ -29,6 +29,10 @@ public class HttpRequest implements HttpServletRequest {
     protected Map<String, String[]> parameters = new ConcurrentHashMap<>();
     HttpRequestLine requestLine = new HttpRequestLine();
 
+    Cookie[] cookies;
+    HttpSession session;
+    String sessionid;
+    SessionFacade sessionFacade;
     boolean parsed = false;
 
     public HttpRequest(InputStream input) {
@@ -40,9 +44,14 @@ public class HttpRequest implements HttpServletRequest {
         try {
             parseConnection(socket);
             this.sis.readRequestLine(requestLine);
-            parseHeaders();
+            // 解析请求行，并判断是非存在 cookie
             parseRequestLine();
+            // 解析请求头
+            parseHeaders();
+            // 解析请请求体
             parseParameters();
+
+
         } catch (IOException | ServletException e) {
             log.error(e.getMessage());
         }
@@ -50,11 +59,22 @@ public class HttpRequest implements HttpServletRequest {
 
     public void parseRequestLine() {
         int queryStart = requestLine.indexOf("?");
-        if (queryStart != -1) {
+        if (queryStart >= 0) {
             queryString = new String(requestLine.uri, queryStart + 1, requestLine.uriEnd - queryStart - 1);
             uri = new String(requestLine.uri, 0, queryStart);
+            int semicolon = uri.indexOf(DefaultHeaders.JSESSIONID_NAME);
+            if (semicolon >= 0) {
+                sessionid = uri.substring(semicolon + DefaultHeaders.JSESSIONID_NAME.length());
+                uri = uri.substring(0, semicolon);
+            }
         } else {
+            queryString = null;
             uri = new String(requestLine.uri, 0, requestLine.uriEnd);
+            int  semicolon = uri.indexOf(DefaultHeaders.JSESSIONID_NAME);
+            if (semicolon >= 0) {
+                sessionid = uri.substring(semicolon + DefaultHeaders.JSESSIONID_NAME.length());
+                uri = uri.substring(0, semicolon);
+            }
         }
     }
 
@@ -182,10 +202,49 @@ public class HttpRequest implements HttpServletRequest {
                 headers.put(name, value);
             } else if (name.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {
                 headers.put(name, value);
+            } else if (name.equals(DefaultHeaders.COOKIE_NAME)) {
+                headers.put(name, value);
+                this.cookies = parseCookieHeader(value);
+                for (int i = 0; i < cookies.length; i++) {
+                    if (cookies[i].getName().equals("jsessionid")) {
+                        this.sessionid = cookies[i].getValue();
+                    }
+                }
             } else {
                 headers.put(name, value);
             }
         }
+    }
+
+    //解析Cookie头,格式为: key1=value1;key2=value2
+    public  Cookie[] parseCookieHeader(String header) {
+        if ((header == null) || (header.isEmpty()) )
+            return (new Cookie[0]);
+        ArrayList<Cookie> cookieal = new ArrayList<>();
+        while (!header.isEmpty()) {
+            int semicolon = header.indexOf(';');
+            if (semicolon < 0)
+                semicolon = header.length();
+            if (semicolon == 0)
+                break;
+
+            String token = header.substring(0, semicolon);
+            if (semicolon < header.length())
+                header = header.substring(semicolon + 1);
+            else
+                header = "";
+
+            try {
+                int equals = token.indexOf('=');
+                if (equals > 0) {
+                    String name = token.substring(0, equals).trim();
+                    String value = token.substring(equals+1).trim();
+                    cookieal.add(new Cookie(name, value));
+                }
+            } catch (Throwable e) {
+            }
+        }
+        return cookieal.toArray (new Cookie[0]);
     }
 
     //给key设置新值,多值用数组来存储
@@ -243,7 +302,7 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public Cookie[] getCookies() {
-        return new Cookie[0];
+        return cookies;
     }
 
     @Override
@@ -333,7 +392,28 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public HttpSession getSession(boolean b) {
-        return null;
+        if (sessionFacade != null)
+            return sessionFacade;
+        if (sessionid != null) {
+            session = HttpConnector.sessions.get(sessionid);
+            if (session != null) {
+                sessionFacade = new SessionFacade(session);
+                return sessionFacade;
+            } else {
+                session = HttpConnector.createSession();
+                sessionFacade = new SessionFacade(session);
+                return sessionFacade;
+            }
+        } else {
+            session = HttpConnector.createSession();
+            sessionFacade = new SessionFacade(session);
+            sessionid = session.getId();
+            return sessionFacade;
+        }
+    }
+
+    public String getSessionid() {
+        return sessionid;
     }
 
     @Override

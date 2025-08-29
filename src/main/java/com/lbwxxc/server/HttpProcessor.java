@@ -53,7 +53,10 @@ public class HttpProcessor implements Runnable {
             InputStream inputStream = socket.getInputStream();
             HttpRequest httpRequest = new HttpRequest(inputStream);
             httpRequest.parse(socket);
-
+            if (httpRequest.getSessionid() == null || httpRequest.getSessionid().isEmpty()) {
+                // 尝试获取 session，如果没有则创建
+                httpRequest.getSession(true);
+            }
             OutputStream outputStream = socket.getOutputStream();
             HttpResponse httpResponse = new HttpResponse(outputStream);
             httpResponse.setRequest(httpRequest);

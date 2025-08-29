@@ -29,8 +29,7 @@ public class SocketInputStream extends ServletInputStream {
         this.buf = new byte[bufferSize];
     }
 
-    public void readRequestLine(HttpRequestLine requestLine)
-            throws IOException {
+    public void readRequestLine(HttpRequestLine requestLine) throws IOException {
 
         int chr = 0;
         do {
