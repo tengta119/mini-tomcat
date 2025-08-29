@@ -3,10 +3,14 @@ package com.lbwxxc.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ReadListener;
+import javax.servlet.ServletInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SocketInputStream extends InputStream {
+public class SocketInputStream extends ServletInputStream {
+
+    private static final Logger log = LoggerFactory.getLogger(SocketInputStream.class);
 
     private static final byte CR = (byte) '\r';
     private static final byte LF = (byte) '\n';
@@ -14,7 +18,6 @@ public class SocketInputStream extends InputStream {
     private static final byte HT = (byte) '\t';
     private static final byte COLON = (byte) ':';
     private static final int LC_OFFSET = 'A' - 'a';
-    private static final Logger log = LoggerFactory.getLogger(SocketInputStream.class);
 
     protected byte[] buf;
     protected int count;
@@ -269,4 +272,20 @@ public class SocketInputStream extends InputStream {
             count = nRead;
         }
     }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+
+    @Override
+    public boolean isReady() {
+        return false;
+    }
+
+    @Override
+    public void setReadListener(ReadListener readListener) {
+
+    }
+
 }

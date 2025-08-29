@@ -21,6 +21,8 @@ public class HttpRequest implements HttpServletRequest {
     private InputStream input;
     private SocketInputStream sis;
     private String uri;
+    // 查询参数
+    private String queryString;
     InetAddress address;
     int port;
     protected HashMap<String, String> headers = new HashMap<>();
@@ -37,10 +39,20 @@ public class HttpRequest implements HttpServletRequest {
             parseConnection(socket);
             this.sis.readRequestLine(requestLine);
             parseHeaders();
+            parseRequestLine();
         } catch (IOException | ServletException e) {
             log.error(e.getMessage());
         }
-        this.uri = new String(requestLine.uri, 0, requestLine.uriEnd);
+    }
+
+    public void parseRequestLine() {
+        int queryStart = requestLine.indexOf("?");
+        if (queryStart != -1) {
+            queryString = new String(requestLine.uri, queryStart + 1, requestLine.uriEnd - queryStart - 1);
+            uri = new String(requestLine.uri, 0, queryStart);
+        } else {
+            uri = new String(requestLine.uri, 0, requestLine.uriEnd);
+        }
     }
 
     private void parseConnection(Socket socket) {
@@ -297,12 +309,12 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public String getContentType() {
-        return "";
+        return headers.get(DefaultHeaders.CONTENT_TYPE_NAME);
     }
 
     @Override
     public ServletInputStream getInputStream() {
-        return null;
+        return sis;
     }
 
     @Override
