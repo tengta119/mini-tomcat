@@ -26,8 +26,10 @@ public class HttpRequest implements HttpServletRequest {
     InetAddress address;
     int port;
     protected HashMap<String, String> headers = new HashMap<>();
-    protected Map<String, String> parameters = new ConcurrentHashMap<>();
+    protected Map<String, String[]> parameters = new ConcurrentHashMap<>();
     HttpRequestLine requestLine = new HttpRequestLine();
+
+    boolean parsed = false;
 
     public HttpRequest(InputStream input) {
         this.input = input;
@@ -40,6 +42,7 @@ public class HttpRequest implements HttpServletRequest {
             this.sis.readRequestLine(requestLine);
             parseHeaders();
             parseRequestLine();
+            parseParameters();
         } catch (IOException | ServletException e) {
             log.error(e.getMessage());
         }
@@ -53,6 +56,99 @@ public class HttpRequest implements HttpServletRequest {
         } else {
             uri = new String(requestLine.uri, 0, requestLine.uriEnd);
         }
+    }
+
+
+    protected void parseParameters() {
+        String encoding = getCharacterEncoding();
+        if (encoding == null) {
+            encoding = "utf-8";
+        }
+        String qString = queryString;
+        if (qString != null) {
+            byte[] bytes = qString.getBytes();
+            parseParameters(parameters, bytes, encoding);
+        }
+
+        String contentType = getContentType();
+        if (contentType == null) {
+            contentType = "";
+        }
+        int semicolon = contentType.indexOf(';');
+        if (semicolon >= 0) {
+            contentType = contentType.substring(0, semicolon).trim();
+        } else {
+            contentType = contentType.trim();
+        }
+
+        if ("POST".equals(getMethod()) && (getContentLength() > 0
+                && "application/x-www-form-urlencoded".equals(contentType))) {
+            int max = getContentLength();
+            int len = 0;
+            byte[] buf = new byte[max];
+            ServletInputStream is = getInputStream();
+            while (len < max) {
+                try {
+                    int next = is.readLine(buf, len, max - len);
+                    if (next < 0) {
+                        is.close();
+                        break;
+                    }
+                    len += next;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            parseParameters(parameters, buf, encoding);
+        }
+    }
+
+    public void parseParameters(Map<String,String[]> map, byte[] data, String encoding) {
+        if (parsed) {
+            return;
+        }
+
+        if (data != null && data.length > 0) {
+            int pos = 0;
+            int ix = 0;
+            int ox = 0;
+            String key = null;
+            String value = null;
+
+            // 解析参数串,处理特殊字符
+            while (ix <  data.length) {
+                byte c = data[ix++];
+                switch ((char) c) {
+                    case '&' -> {
+                        value = new String(data, 0, ox);
+                        if (key != null) {
+                            putMapEntry(map, key, value);
+                            key = null;
+                        }
+                        ox = 0;
+                    }
+
+                    case '=' -> {
+                        key = new String(data, 0, ox);
+                        ox = 0;
+                    }
+
+                    case '+' -> data[ox++] = (byte) ' ';
+
+                    case '%' -> data[ox++] = (byte) ((convertHexDigit(data[ix++]) << 4) + convertHexDigit(data[ix++]));
+
+                    default -> data[ox++] = (byte) c;
+                }
+            }
+
+            if (key != null) {
+                value = new String(data, 0, ox);
+                putMapEntry(map, key, value);
+            }
+        }
+
+        parsed = true;
     }
 
     private void parseConnection(Socket socket) {
@@ -92,6 +188,29 @@ public class HttpRequest implements HttpServletRequest {
         }
     }
 
+    //给key设置新值,多值用数组来存储
+    private static void putMapEntry( Map<String,String[]> map, String name, String value) {
+        String[] oldValues = map.get(name);
+        String[] newValues;
+
+        if (oldValues == null) {
+            newValues = new String[]{value};
+        } else {
+            newValues = new String[oldValues.length + 1];
+            System.arraycopy(oldValues, 0, newValues, 0, oldValues.length);
+            newValues[oldValues.length] = value;
+        }
+
+        map.put(name, newValues);
+    }
+
+    //十六进制字符到数字的转换
+    private byte convertHexDigit(byte b) {
+        if ((b >= '0') && (b <= '9')) return (byte)(b - '0');
+        if ((b >= 'a') && (b <= 'f')) return (byte)(b - 'a' + 10);
+        if ((b >= 'A') && (b <= 'F')) return (byte)(b - 'A' + 10);
+        return 0;
+    }
 
     public String getUri() {
         return uri;
@@ -299,7 +418,12 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public int getContentLength() {
-        return 0;
+        try {
+            return sis.is.available();
+        } catch (IOException e) {
+            log.error("读取 httpRequest 大小时发送错误: {}",e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
