@@ -71,11 +71,12 @@ public class ServletProcessor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
+        HttpRequestFacade httpRequestFacade = new HttpRequestFacade(request);
+        HttpResponseFacade httpResponseFacade = new HttpResponseFacade(response);
         Servlet servlet;
         try {
             servlet = (Servlet) servletClass.newInstance();
-            servlet.service(request, response);
+            servlet.service(httpRequestFacade, httpResponseFacade);
         } catch (InstantiationException | IllegalAccessException | ServletException | IOException e) {
             throw new RuntimeException(e);
         }
