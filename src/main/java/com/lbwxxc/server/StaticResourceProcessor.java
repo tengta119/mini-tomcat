@@ -34,10 +34,10 @@ public class StaticResourceProcessor {
             \r
             """;
 
-    public void process(HttpRequest request, Response response) {
+    public void process(HttpRequest request, HttpResponse response) {
         try (FileInputStream fis = new FileInputStream(new File(HttpServer.WEB_ROOT, request.getUri()))) {
 
-            OutputStream out = response.getOut();
+            OutputStream out = response.getOutput();
             out.write(composeResponseHead(fis.available()).getBytes(StandardCharsets.UTF_8));
             byte[] buffer = new byte[BUFFER_SIZE];
             int len;

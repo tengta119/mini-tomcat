@@ -55,15 +55,15 @@ public class HttpProcessor implements Runnable {
             httpRequest.parse(socket);
 
             OutputStream outputStream = socket.getOutputStream();
-            Response response = new Response(httpRequest, outputStream);
-
+            HttpResponse httpResponse = new HttpResponse(outputStream);
+            httpResponse.setRequest(httpRequest);
             if (httpRequest.getUri().startsWith("/servlet/")) {
                 log.info("访问动态资源");
                 ServletProcessor servletProcessor = new ServletProcessor();
-                servletProcessor.process(httpRequest, response);
+                servletProcessor.process(httpRequest, httpResponse);
             } else {
                 StaticResourceProcessor staticResourceProcessor = new StaticResourceProcessor();
-                staticResourceProcessor.process(httpRequest, response);
+                staticResourceProcessor.process(httpRequest, httpResponse);
             }
 
             socket.close();

@@ -1,135 +1,118 @@
 package com.lbwxxc.server;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
-import java.io.BufferedReader;
-import java.security.Principal;
-import java.util.*;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpResponse implements HttpServletRequest {
+public class HttpResponse implements HttpServletResponse {
+    HttpRequest request;
+    OutputStream output;
+    PrintWriter writer;
 
-    @Override
-    public String getHeader(String s) {
-        return "";
+    String contentType = null;
+    long contentLength = -1;
+    String charset = null;
+    String characterEncoding = null;
+    String protocol = "HTTP/1.1";
+
+    Map<String, String> headers = new ConcurrentHashMap<>();
+    String message = getStatusMessage(HttpServletResponse.SC_OK);
+    int status = HttpServletResponse.SC_OK;
+
+    public HttpResponse(OutputStream output) {
+        this.output = output;
+    }
+
+    public void setRequest(HttpRequest request) {
+        this.request = request;
+    }
+
+    protected String getStatusMessage(int status) {
+        return switch (status) {
+            case SC_OK -> ("OK");
+            case SC_ACCEPTED -> ("Accepted");
+            case SC_BAD_GATEWAY -> ("Bad Gateway");
+            case SC_BAD_REQUEST -> ("Bad Request");
+            case SC_CONTINUE -> ("Continue");
+            case SC_FORBIDDEN -> ("Forbidden");
+            case SC_INTERNAL_SERVER_ERROR -> ("Internal Server Error");
+            case SC_METHOD_NOT_ALLOWED -> ("Method Not Allowed");
+            case SC_NOT_FOUND -> ("Not Found");
+            case SC_NOT_IMPLEMENTED -> ("Not Implemented");
+            case SC_REQUEST_URI_TOO_LONG -> ("Request URI Too Long");
+            case SC_SERVICE_UNAVAILABLE -> ("Service Unavailable");
+            case SC_UNAUTHORIZED -> ("Unauthorized");
+            default -> ("HTTP Response Status " + status);
+        };
+    }
+
+    public void sendHeaders() throws IOException {
+        PrintWriter outputWriter = getWriter();
+        outputWriter.print(this.getProtocol());
+        outputWriter.print(" ");
+        outputWriter.print(status);
+        if (message != null) {
+            outputWriter.print(" ");
+            outputWriter.print(message);
+        }
+        outputWriter.print("\r\n");
+        if (getContentType() != null) {
+            outputWriter.print("Content-Type: " + getContentType() + "\r\n");
+        }
+        if (getContentLength() >= 0) {
+            outputWriter.print("Content-Length: " + getContentLength() + "\r\n");
+        }
+        Iterator<String> names = headers.keySet().iterator();
+        while (names.hasNext()) {
+            String name = names.next();
+            String value = headers.get(name);
+            outputWriter.print(name);
+            outputWriter.print(": ");
+            outputWriter.print(value);
+            outputWriter.print("\r\n");
+        }
+        outputWriter.print("\r\n");
+        outputWriter.flush();
+    }
+
+    private long getContentLength() {
+        return this.contentLength;
+    }
+
+    private String getProtocol() {
+        return this.protocol;
+    }
+
+    public OutputStream getOutput() {
+        return this.output;
     }
 
     @Override
-    public Enumeration<String> getHeaders(String s) {
-        return null;
+    public void flushBuffer() throws IOException {
     }
 
     @Override
-    public Enumeration<String> getHeaderNames() {
-        return null;
-    }
-
-    @Override
-    public String getParameter(String s) {
-        return "";
-    }
-
-    @Override
-    public Enumeration<String> getParameterNames() {
-        return null;
-    }
-
-    @Override
-    public String[] getParameterValues(String s) {
-        return new String[0];
-    }
-
-    @Override
-    public Map<String, String[]> getParameterMap() {
-        return Map.of();
-    }
-
-    @Override
-    public ServletInputStream getInputStream() {
-        return null;
-    }
-
-    @Override
-    public Object getAttribute(String s) {
-        return null;
-    }
-
-
-
-
-
-    @Override
-    public Enumeration<String> getAttributeNames() {
-        return null;
+    public int getBufferSize() {
+        return 0;
     }
 
     @Override
     public String getCharacterEncoding() {
-        return "";
-    }
-
-    @Override
-    public void setCharacterEncoding(String s) {
-
-    }
-
-    @Override
-    public int getContentLength() {
-        return 0;
-    }
-
-    @Override
-    public long getContentLengthLong() {
-        return 0;
+        return this.characterEncoding;
     }
 
     @Override
     public String getContentType() {
-        return "";
-    }
-
-    @Override
-    public String getProtocol() {
-        return "";
-    }
-
-    @Override
-    public String getScheme() {
-        return "";
-    }
-
-    @Override
-    public String getServerName() {
-        return "";
-    }
-
-    @Override
-    public int getServerPort() {
-        return 0;
-    }
-
-    @Override
-    public BufferedReader getReader() {
-        return null;
-    }
-
-    @Override
-    public String getRemoteAddr() {
-        return "";
-    }
-
-    @Override
-    public String getRemoteHost() {
-        return "";
-    }
-
-    @Override
-    public void setAttribute(String s, Object o) {
-
-    }
-
-    @Override
-    public void removeAttribute(String s) {
-
+        return this.contentType;
     }
 
     @Override
@@ -138,242 +121,163 @@ public class HttpResponse implements HttpServletRequest {
     }
 
     @Override
-    public Enumeration<Locale> getLocales() {
-        return null;
+    public ServletOutputStream getOutputStream() throws IOException {
+        return (ServletOutputStream) output;
     }
 
     @Override
-    public boolean isSecure() {
+    public PrintWriter getWriter() throws IOException {
+        writer = new PrintWriter(new OutputStreamWriter(output), true);
+        return writer;
+    }
+
+    @Override
+    public boolean isCommitted() {
         return false;
     }
 
     @Override
-    public RequestDispatcher getRequestDispatcher(String s) {
+    public void reset() {
+    }
+
+    @Override
+    public void resetBuffer() {
+    }
+
+    @Override
+    public void setBufferSize(int arg0) {
+    }
+
+    @Override
+    public void setCharacterEncoding(String arg0) {
+        this.characterEncoding = arg0;
+    }
+
+    @Override
+    public void setContentLength(int length) {
+        this.contentLength = length;
+    }
+
+    @Override
+    public void setContentLengthLong(long length) {
+        this.contentLength = length;
+    }
+
+    @Override
+    public void setContentType(String arg0) {
+        this.contentType = arg0;
+    }
+
+    @Override
+    public void setLocale(Locale arg0) {
+    }
+
+    @Override
+    public void addCookie(Cookie arg0) {
+    }
+
+    @Override
+    public void addDateHeader(String arg0, long arg1) {
+    }
+
+    @Override
+    public void addHeader(String name, String value) {
+        headers.put(name, value);
+        if (name.toLowerCase() == DefaultHeaders.CONTENT_LENGTH_NAME) {
+            setContentLength(Integer.parseInt(value));
+        }
+        if (name.toLowerCase() == DefaultHeaders.CONTENT_TYPE_NAME) {
+            setContentType(value);
+        }
+    }
+
+    @Override
+    public void addIntHeader(String arg0, int arg1) {
+    }
+
+    @Override
+    public boolean containsHeader(String name) {
+        return (headers.get(name) != null);
+    }
+
+    @Override
+    public String encodeRedirectURL(String arg0) {
         return null;
     }
 
     @Override
-    public String getRealPath(String s) {
-        return "";
-    }
-
-    @Override
-    public int getRemotePort() {
-        return 0;
-    }
-
-    @Override
-    public String getLocalName() {
-        return "";
-    }
-
-    @Override
-    public String getLocalAddr() {
-        return "";
-    }
-
-    @Override
-    public int getLocalPort() {
-        return 0;
-    }
-
-    @Override
-    public ServletContext getServletContext() {
+    public String encodeRedirectUrl(String arg0) {
         return null;
     }
 
     @Override
-    public AsyncContext startAsync() throws IllegalStateException {
+    public String encodeURL(String arg0) {
         return null;
     }
 
     @Override
-    public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
+    public String encodeUrl(String arg0) {
         return null;
     }
 
     @Override
-    public boolean isAsyncStarted() {
-        return false;
+    public String getHeader(String name) {
+        return headers.get(name);
     }
 
     @Override
-    public boolean isAsyncSupported() {
-        return false;
+    public Collection<String> getHeaderNames() {
+        return headers.keySet();
     }
 
     @Override
-    public AsyncContext getAsyncContext() {
+    public Collection<String> getHeaders(String arg0) {
         return null;
     }
 
     @Override
-    public DispatcherType getDispatcherType() {
-        return null;
+    public int getStatus() {
+        return this.status;
     }
 
     @Override
-    public HttpServletMapping getHttpServletMapping() {
-        return HttpServletRequest.super.getHttpServletMapping();
+    public void sendError(int arg0) throws IOException {
     }
 
     @Override
-    public PushBuilder newPushBuilder() {
-        return HttpServletRequest.super.newPushBuilder();
+    public void sendError(int arg0, String arg1) throws IOException {
     }
 
     @Override
-    public Map<String, String> getTrailerFields() {
-        return HttpServletRequest.super.getTrailerFields();
+    public void sendRedirect(String arg0) throws IOException {
     }
 
     @Override
-    public boolean isTrailerFieldsReady() {
-        return HttpServletRequest.super.isTrailerFieldsReady();
+    public void setDateHeader(String arg0, long arg1) {
     }
 
     @Override
-    public String getAuthType() {
-        return "";
+    public void setHeader(String name, String value) {
+        headers.put(name, value);
+        if (name.toLowerCase() == DefaultHeaders.CONTENT_LENGTH_NAME) {
+            setContentLength(Integer.parseInt(value));
+        }
+        if (name.toLowerCase() == DefaultHeaders.CONTENT_TYPE_NAME) {
+            setContentType(value);
+        }
     }
 
     @Override
-    public Cookie[] getCookies() {
-        return new Cookie[0];
+    public void setIntHeader(String arg0, int arg1) {
     }
 
     @Override
-    public long getDateHeader(String s) {
-        return 0;
+    public void setStatus(int status) {
+        this.status = status;
+        this.message = this.getStatusMessage(status);
     }
 
     @Override
-    public int getIntHeader(String s) {
-        return 0;
-    }
-
-    @Override
-    public String getMethod() {
-        return "";
-    }
-
-    @Override
-    public String getPathInfo() {
-        return "";
-    }
-
-    @Override
-    public String getPathTranslated() {
-        return "";
-    }
-
-    @Override
-    public String getContextPath() {
-        return "";
-    }
-
-    @Override
-    public String getQueryString() {
-        return "";
-    }
-
-    @Override
-    public String getRemoteUser() {
-        return "";
-    }
-
-    @Override
-    public boolean isUserInRole(String s) {
-        return false;
-    }
-
-    @Override
-    public Principal getUserPrincipal() {
-        return null;
-    }
-
-    @Override
-    public String getRequestedSessionId() {
-        return "";
-    }
-
-    @Override
-    public String getRequestURI() {
-        return "";
-    }
-
-    @Override
-    public StringBuffer getRequestURL() {
-        return null;
-    }
-
-    @Override
-    public String getServletPath() {
-        return "";
-    }
-
-    @Override
-    public HttpSession getSession(boolean b) {
-        return null;
-    }
-
-    @Override
-    public HttpSession getSession() {
-        return null;
-    }
-
-    @Override
-    public String changeSessionId() {
-        return "";
-    }
-
-    @Override
-    public boolean isRequestedSessionIdValid() {
-        return false;
-    }
-
-    @Override
-    public boolean isRequestedSessionIdFromCookie() {
-        return false;
-    }
-
-    @Override
-    public boolean isRequestedSessionIdFromURL() {
-        return false;
-    }
-
-    @Override
-    public boolean isRequestedSessionIdFromUrl() {
-        return false;
-    }
-
-    @Override
-    public boolean authenticate(HttpServletResponse httpServletResponse) {
-        return false;
-    }
-
-    @Override
-    public void login(String s, String s1) {
-
-    }
-
-    @Override
-    public void logout() {
-
-    }
-
-    @Override
-    public Collection<Part> getParts() {
-        return List.of();
-    }
-
-    @Override
-    public Part getPart(String s) {
-        return null;
-    }
-
-    @Override
-    public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) {
-        return null;
+    public void setStatus(int arg0, String arg1) {
     }
 }

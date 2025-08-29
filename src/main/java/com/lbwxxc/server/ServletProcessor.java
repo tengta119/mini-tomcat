@@ -39,7 +39,7 @@ public class ServletProcessor {
             \r
             """;
 
-    public void process(HttpRequest request, Response response) {
+    public void process(HttpRequest request, HttpResponse response) {
         String uir = request.getUri();
         String ServletName = uir.substring(uir.lastIndexOf('/') + 1);
         URLClassLoader loader;
