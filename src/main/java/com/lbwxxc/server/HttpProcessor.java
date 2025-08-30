@@ -21,6 +21,10 @@ public class HttpProcessor implements Runnable {
     Socket socket;
     boolean available = false;
     HttpConnector connector;
+    private int serverPort = 0;
+    private boolean keepAlive = true;
+    private boolean http11 = true;
+
     public HttpProcessor(HttpConnector connector) {
         this.connector = connector;
     }
@@ -38,28 +42,25 @@ public class HttpProcessor implements Runnable {
                 continue;
             }
             process(socket);
-            try {
-                socket.close();
-            } catch (IOException e) {
-                log.error("", e);
-                break;
-            }
             connector.recycle(this);
         }
     }
 
     public void process(Socket socket) {
+        InputStream inputStream;
+        OutputStream outputStream;
         try {
-            InputStream inputStream = socket.getInputStream();
+            inputStream = socket.getInputStream();
+            outputStream = socket.getOutputStream();
             HttpRequest httpRequest = new HttpRequest(inputStream);
             httpRequest.parse(socket);
             if (httpRequest.getSessionid() == null || httpRequest.getSessionid().isEmpty()) {
                 // 尝试获取 session，如果没有则创建
                 httpRequest.getSession(true);
             }
-            OutputStream outputStream = socket.getOutputStream();
             HttpResponse httpResponse = new HttpResponse(outputStream);
             httpResponse.setRequest(httpRequest);
+            httpResponse.sendHeaders();
             if (httpRequest.getUri().startsWith("/servlet/")) {
                 log.info("访问动态资源");
                 ServletProcessor servletProcessor = new ServletProcessor();
@@ -68,11 +69,18 @@ public class HttpProcessor implements Runnable {
                 StaticResourceProcessor staticResourceProcessor = new StaticResourceProcessor();
                 staticResourceProcessor.process(httpRequest, httpResponse);
             }
+            log.info("response header connection----- {}", httpResponse.getHeader("Connection"));
+            finishResponse(httpResponse);
 
             socket.close();
+            socket = null;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void finishResponse(HttpResponse response) {
+        response.finishResponse();
     }
 
     synchronized void assign(Socket socket) {

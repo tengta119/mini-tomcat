@@ -34,7 +34,7 @@ public class HttpRequest implements HttpServletRequest {
     String sessionid;
     SessionFacade sessionFacade;
     boolean parsed = false;
-
+    HttpResponse httpResponse;
     public HttpRequest(InputStream input) {
         this.input = input;
         this.sis = new SocketInputStream(this.input, 2048);
@@ -416,6 +416,15 @@ public class HttpRequest implements HttpServletRequest {
 
     public String getSessionid() {
         return sessionid;
+    }
+
+    public void setStream(InputStream input) {
+        this.input = input;
+        this.sis = new SocketInputStream(this.input, 2028);
+    }
+
+    public void setResponse(HttpResponse response) {
+        this.httpResponse = response;
     }
 
     @Override

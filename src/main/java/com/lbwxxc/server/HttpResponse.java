@@ -1,6 +1,8 @@
 package com.lbwxxc.server;
 
 import com.lbwxxc.utils.CookieTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
@@ -14,6 +16,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpResponse implements HttpServletResponse {
+    private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
     HttpRequest request;
     OutputStream output;
     PrintWriter writer;
@@ -96,7 +99,7 @@ public class HttpResponse implements HttpServletResponse {
                 outputWriter.print(": ");
                 StringBuffer sbValue = new StringBuffer();
                 CookieTools.getCookieHeaderValue(cookie, sbValue);
-                System.out.println("set cookie jsessionid string : "+ sbValue);
+                log.info("set cookie jsessionid string : {}", sbValue);
                 outputWriter.print(sbValue);
                 outputWriter.print("\r\n");
             }
@@ -303,5 +306,17 @@ public class HttpResponse implements HttpServletResponse {
 
     @Override
     public void setStatus(int arg0, String arg1) {
+    }
+
+    public void setStream(OutputStream output) {
+        this.output = output;
+    }
+
+    public void finishResponse() {
+        try {
+            this.getWriter().flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

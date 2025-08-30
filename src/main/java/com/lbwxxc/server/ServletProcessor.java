@@ -42,18 +42,8 @@ public class ServletProcessor {
     public void process(HttpRequest request, HttpResponse response) {
         String uir = request.getUri();
         String ServletName = uir.substring(uir.lastIndexOf('/') + 1);
-        URLClassLoader loader;
+        URLClassLoader loader = HttpConnector.loader;
 
-        try {
-            URL[] urls = new URL[1];
-            File classPath = new File(HttpServer.WEB_ROOT);
-            String repository = (new URL("file", null, classPath.getCanonicalPath() + File.separator)).toString();
-            URLStreamHandler urlStreamHandler = null;
-            urls[0] = new URL(null, repository, urlStreamHandler);
-            loader = new URLClassLoader(urls);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         ServletName = "com.lbwxxc.test.HelloServlet";
         Class<?> servletClass;
