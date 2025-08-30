@@ -1,16 +1,16 @@
 package com.lbwxxc.server;
 
+import com.lbwxxc.utils.CookieTools;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpResponse implements HttpServletResponse {
@@ -23,7 +23,7 @@ public class HttpResponse implements HttpServletResponse {
     String charset = null;
     String characterEncoding = null;
     String protocol = "HTTP/1.1";
-
+    ArrayList<Cookie> cookies = new ArrayList<>();
     Map<String, String> headers = new ConcurrentHashMap<>();
     String message = getStatusMessage(HttpServletResponse.SC_OK);
     int status = HttpServletResponse.SC_OK;
@@ -80,9 +80,32 @@ public class HttpResponse implements HttpServletResponse {
             outputWriter.print(value);
             outputWriter.print("\r\n");
         }
+
+        HttpSession session = this.request.getSession(false);
+        if (session != null) {
+            Cookie cookie = new Cookie(DefaultHeaders.JSESSIONID_NAME, session.getId());
+            cookie.setMaxAge(-1);
+            addCookie(cookie);
+        }
+
+        synchronized (cookies) {
+            Iterator<Cookie> items = cookies.iterator();
+            while (items.hasNext()) {
+                Cookie cookie = items.next();
+                outputWriter.print(CookieTools.getCookieHeaderName(cookie));
+                outputWriter.print(": ");
+                StringBuffer sbValue = new StringBuffer();
+                CookieTools.getCookieHeaderValue(cookie, sbValue);
+                System.out.println("set cookie jsessionid string : "+ sbValue);
+                outputWriter.print(sbValue);
+                outputWriter.print("\r\n");
+            }
+        }
+
         outputWriter.print("\r\n");
         outputWriter.flush();
     }
+
 
     private long getContentLength() {
         return this.contentLength;
@@ -174,6 +197,7 @@ public class HttpResponse implements HttpServletResponse {
 
     @Override
     public void addCookie(Cookie arg0) {
+        cookies.add(arg0);
     }
 
     @Override
