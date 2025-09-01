@@ -21,7 +21,7 @@ public class ServletContainer {
     ClassLoader loader;
 
     Map<String, String> servletClsMap = new ConcurrentHashMap<>();
-    Map<String, Servlet> servletInstanceMap = new ConcurrentHashMap<>();
+    Map<String, ServletWrapper> servletInstanceMap = new ConcurrentHashMap<>();
 
     public ServletContainer() {
         URL[] urls = new URL[1];
@@ -37,7 +37,7 @@ public class ServletContainer {
     }
 
     public void invoke(HttpRequest request, HttpResponse response) {
-        Servlet servlet = null;
+        ServletWrapper servlet = null;
         ClassLoader loader = getLoader();
         String uri = request.getUri();
         String servletName = uri.substring(uri.lastIndexOf("/") + 1);
@@ -54,7 +54,8 @@ public class ServletContainer {
             }
 
             try {
-                servlet = (Servlet) servletClass.newInstance();
+                servlet = new ServletWrapper(servletClassName, this);
+                servlet.setInstance((Servlet) servletClass.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -64,11 +65,10 @@ public class ServletContainer {
         }
 
         try {
-            servlet.init(null);
             HttpRequestFacade requestFacade = new HttpRequestFacade(request);
             HttpResponseFacade responseFacade = new HttpResponseFacade(response);
             System.out.println("Call service()");
-            servlet.service(requestFacade, responseFacade);
+            servlet.invoke(requestFacade, responseFacade);
         } catch (ServletException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -99,11 +99,11 @@ public class ServletContainer {
         this.servletClsMap = servletClsMap;
     }
 
-    public Map<String, Servlet> getServletInstanceMap() {
+    public Map<String, ServletWrapper> getServletInstanceMap() {
         return servletInstanceMap;
     }
 
-    public void setServletInstanceMap(Map<String, Servlet> servletInstanceMap) {
+    public void setServletInstanceMap(Map<String, ServletWrapper> servletInstanceMap) {
         this.servletInstanceMap = servletInstanceMap;
     }
 }
