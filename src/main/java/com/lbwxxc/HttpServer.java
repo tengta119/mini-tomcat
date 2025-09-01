@@ -2,6 +2,7 @@ package com.lbwxxc;
 
 
 import com.lbwxxc.server.HttpConnector;
+import com.lbwxxc.server.ServletContainer;
 
 import java.io.File;
 
@@ -16,6 +17,9 @@ public class HttpServer {
 
     public static void main(String[] args) {
         HttpConnector httpConnector = new HttpConnector();
+        ServletContainer servletContainer = new ServletContainer();
+        httpConnector.setContainer(servletContainer);
+        servletContainer.setConnector(httpConnector);
         httpConnector.start();
     }
 

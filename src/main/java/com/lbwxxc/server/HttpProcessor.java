@@ -53,7 +53,6 @@ public class HttpProcessor implements Runnable {
         OutputStream outputStream;
         try {
 
-            socket.setSoTimeout(10);
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
             HttpRequest httpRequest = new HttpRequest(inputStream);
@@ -67,7 +66,7 @@ public class HttpProcessor implements Runnable {
             httpResponse.sendHeaders();
             if (httpRequest.getUri().startsWith("/servlet/")) {
                 log.info("访问动态资源");
-                ServletProcessor servletProcessor = new ServletProcessor();
+                ServletProcessor servletProcessor = new ServletProcessor(connector);
                 servletProcessor.process(httpRequest, httpResponse);
             } else {
                 StaticResourceProcessor staticResourceProcessor = new StaticResourceProcessor();

@@ -33,6 +33,8 @@ public class HttpConnector implements Runnable {
     public static Map<String, HttpSession> sessions = new ConcurrentHashMap<>();
     //一个全局的class loader
     public static URLClassLoader loader = null;
+    //这是与connector相关联的container
+    ServletContainer container = null;
     @Override
     public void run() {
         ServerSocket serverSocket;
@@ -50,16 +52,6 @@ public class HttpConnector implements Runnable {
             throw new RuntimeException(e);
         }
 
-        try {
-            URL[] urls = new URL[1];
-            File classPath = new File(HttpServer.WEB_ROOT);
-            String repository = (new URL("file", null, classPath.getCanonicalPath() + File.separator)).toString();
-            URLStreamHandler urlStreamHandler = null;
-            urls[0] = new URL(null, repository, urlStreamHandler);
-            loader = new URLClassLoader(urls);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         while (true) {
             try {
@@ -133,5 +125,58 @@ public class HttpConnector implements Runnable {
     public void start() {
         Thread thread = new Thread(this);
         thread.start();
+    }
+
+
+    public int getMinProcessors() {
+        return minProcessors;
+    }
+
+    public void setMinProcessors(int minProcessors) {
+        this.minProcessors = minProcessors;
+    }
+
+    public int getMaxProcessors() {
+        return maxProcessors;
+    }
+
+    public void setMaxProcessors(int maxProcessors) {
+        this.maxProcessors = maxProcessors;
+    }
+
+    public int getCurProcessor() {
+        return curProcessor;
+    }
+
+    public void setCurProcessor(int curProcessor) {
+        this.curProcessor = curProcessor;
+    }
+
+    public Deque<HttpProcessor> getProcessors() {
+        return processors;
+    }
+
+    public static Map<String, HttpSession> getSessions() {
+        return sessions;
+    }
+
+    public static void setSessions(Map<String, HttpSession> sessions) {
+        HttpConnector.sessions = sessions;
+    }
+
+    public static URLClassLoader getLoader() {
+        return loader;
+    }
+
+    public static void setLoader(URLClassLoader loader) {
+        HttpConnector.loader = loader;
+    }
+
+    public ServletContainer getContainer() {
+        return container;
+    }
+
+    public void setContainer(ServletContainer container) {
+        this.container = container;
     }
 }

@@ -38,34 +38,14 @@ public class ServletProcessor {
             Date: ${ZonedDateTime}\r
             \r
             """;
-
-    public void process(HttpRequest request, HttpResponse response) {
-        String uir = request.getUri();
-        String ServletName = uir.substring(uir.lastIndexOf('/') + 1);
-        URLClassLoader loader = HttpConnector.loader;
-
-
-        ServletName = "com.lbwxxc.test.HelloServlet";
-        Class<?> servletClass;
-        ClassLoader classLoader = this.getClass().getClassLoader();
-        try {
-            servletClass = classLoader.loadClass(ServletName);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        HttpRequestFacade httpRequestFacade = new HttpRequestFacade(request);
-        HttpResponseFacade httpResponseFacade = new HttpResponseFacade(response);
-        Servlet servlet;
-        try {
-            servlet = (Servlet) servletClass.newInstance();
-            servlet.service(httpRequestFacade, httpResponseFacade);
-        } catch (InstantiationException | IllegalAccessException | ServletException | IOException e) {
-            throw new RuntimeException(e);
-        }
-
+    private HttpConnector connector;
+    public ServletProcessor(HttpConnector connector) {
+        this.connector = connector;
     }
 
+    public void process(HttpRequest request, HttpResponse response) {
+        this.connector.getContainer().invoke(request, response);
+    }
 
     //拼响应头,填充变量值
     private String composeResponseHead() {
