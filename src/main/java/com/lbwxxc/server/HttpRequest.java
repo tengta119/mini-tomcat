@@ -51,7 +51,6 @@ public class HttpRequest implements HttpServletRequest {
             // 解析请请求体
             parseParameters();
 
-
         } catch (IOException | ServletException e) {
             log.error(e.getMessage());
         }
@@ -73,7 +72,7 @@ public class HttpRequest implements HttpServletRequest {
             String tmp = ";" + DefaultHeaders.JSESSIONID_NAME + "=";
             int semicolon = uri.indexOf(tmp);
             if (semicolon >= 0) {
-                sessionid = uri.substring(semicolon+tmp.length());
+                sessionid = uri.substring(semicolon + tmp.length());
                 uri = uri.substring(0, semicolon);
             }
         }
@@ -192,28 +191,23 @@ public class HttpRequest implements HttpServletRequest {
             String value = new String(header.value, 0, header.valueEnd);
             name = name.toLowerCase();
             // Set the corresponding request headers
-            if (name.equals(DefaultHeaders.ACCEPT_LANGUAGE_NAME)) {
-                headers.put(name, value);
-            } else if (name.equals(DefaultHeaders.CONTENT_LENGTH_NAME)) {
-                headers.put(name, value);
-            } else if (name.equals(DefaultHeaders.CONTENT_TYPE_NAME)) {
-                headers.put(name, value);
-            } else if (name.equals(DefaultHeaders.HOST_NAME)) {
-                headers.put(name, value);
-            } else if (name.equals(DefaultHeaders.CONNECTION_NAME)) {
-                headers.put(name, value);
-            } else if (name.equals(DefaultHeaders.TRANSFER_ENCODING_NAME)) {
-                headers.put(name, value);
-            } else if (name.equals(DefaultHeaders.COOKIE_NAME)) {
-                headers.put(name, value);
-                this.cookies = parseCookieHeader(value);
-                for (int i = 0; i < cookies.length; i++) {
-                    if (cookies[i].getName().equals("jsessionid")) {
-                        this.sessionid = cookies[i].getValue();
+            switch (name) {
+                case DefaultHeaders.ACCEPT_LANGUAGE_NAME -> headers.put(name, value);
+                case DefaultHeaders.CONTENT_LENGTH_NAME -> headers.put(name, value);
+                case DefaultHeaders.CONTENT_TYPE_NAME -> headers.put(name, value);
+                case DefaultHeaders.HOST_NAME -> headers.put(name, value);
+                case DefaultHeaders.CONNECTION_NAME -> headers.put(name, value);
+                case DefaultHeaders.TRANSFER_ENCODING_NAME -> headers.put(name, value);
+                case DefaultHeaders.COOKIE_NAME -> {
+                    headers.put(name, value);
+                    this.cookies = parseCookieHeader(value);
+                    for (Cookie cookie : cookies) {
+                        if (cookie.getName().equals("jsessionid")) {
+                            this.sessionid = cookie.getValue();
+                        }
                     }
                 }
-            } else {
-                headers.put(name, value);
+                default -> headers.put(name, value);
             }
         }
     }
@@ -314,7 +308,7 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public String getHeader(String s) {
-        return "";
+        return headers.get(s) == null ? "" : headers.get(s);
     }
 
     @Override

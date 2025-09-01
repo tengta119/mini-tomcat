@@ -29,6 +29,8 @@ public class HelloServlet implements Servlet {
                 <head><meta charset="utf-8"><title>Test</title></head>
                 <body bgcolor="#f0f0f0">
                 <h1 align="center">Hello World 你好</h1>
+                </body>
+                </html>
                 """;
         try {
             servletResponse.getWriter().println(doc);

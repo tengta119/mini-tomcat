@@ -266,10 +266,7 @@ public class SocketInputStream extends ServletInputStream {
             throw new RuntimeException(e);
         }
         pos = 0;
-        count = 0;
-        if (nRead > 0) {
-            count = nRead;
-        }
+        count = Math.max(nRead, 0);
     }
 
     @Override

@@ -54,13 +54,6 @@ public class ServletProcessor {
             throw new RuntimeException(e);
         }
 
-        PrintWriter writer;
-        try {
-            writer = response.getWriter();
-            writer.println(composeResponseHead());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         HttpRequestFacade httpRequestFacade = new HttpRequestFacade(request);
         HttpResponseFacade httpResponseFacade = new HttpResponseFacade(response);
         Servlet servlet;
@@ -81,7 +74,7 @@ public class ServletProcessor {
         headers.put("StatusName", "ok");
         headers.put("ContentType", "text/html;charset=utf-8");
         headers.put("ZonedDateTime", DateTimeFormatter.ISO_ZONED_DATE_TIME.format(ZonedDateTime.now()));
-
-        return new StrSubstitutor(headers).replace(OKMessage);
+        String headersStr = new StrSubstitutor(headers).replace(OKMessage);
+        return headersStr;
     }
 }

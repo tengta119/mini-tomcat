@@ -21,15 +21,16 @@ public class HttpResponse implements HttpServletResponse {
     OutputStream output;
     PrintWriter writer;
 
-    String contentType = null;
+    String contentType = "text/html;charset=utf-8";
     long contentLength = -1;
     String charset = null;
-    String characterEncoding = null;
+    String characterEncoding = "utf-8";
     String protocol = "HTTP/1.1";
     ArrayList<Cookie> cookies = new ArrayList<>();
     Map<String, String> headers = new ConcurrentHashMap<>();
     String message = getStatusMessage(HttpServletResponse.SC_OK);
     int status = HttpServletResponse.SC_OK;
+    boolean headersSent = false;
 
     public HttpResponse(OutputStream output) {
         this.output = output;
@@ -106,12 +107,11 @@ public class HttpResponse implements HttpServletResponse {
         }
 
         outputWriter.print("\r\n");
-        outputWriter.flush();
     }
 
 
     private long getContentLength() {
-        return this.contentLength;
+        return this.contentLength != -1 ? 1000L : this.contentLength;
     }
 
     private String getProtocol() {
@@ -153,7 +153,9 @@ public class HttpResponse implements HttpServletResponse {
 
     @Override
     public PrintWriter getWriter() throws IOException {
-        writer = new PrintWriter(new OutputStreamWriter(output), true);
+        if (writer == null) {
+            writer = new PrintWriter(new OutputStreamWriter(output), true);
+        }
         return writer;
     }
 
@@ -210,10 +212,10 @@ public class HttpResponse implements HttpServletResponse {
     @Override
     public void addHeader(String name, String value) {
         headers.put(name, value);
-        if (name.toLowerCase() == DefaultHeaders.CONTENT_LENGTH_NAME) {
+        if (name.equalsIgnoreCase(DefaultHeaders.CONTENT_LENGTH_NAME)) {
             setContentLength(Integer.parseInt(value));
         }
-        if (name.toLowerCase() == DefaultHeaders.CONTENT_TYPE_NAME) {
+        if (name.equalsIgnoreCase(DefaultHeaders.CONTENT_TYPE_NAME)) {
             setContentType(value);
         }
     }
@@ -286,10 +288,10 @@ public class HttpResponse implements HttpServletResponse {
     @Override
     public void setHeader(String name, String value) {
         headers.put(name, value);
-        if (name.toLowerCase() == DefaultHeaders.CONTENT_LENGTH_NAME) {
+        if (name.equalsIgnoreCase(DefaultHeaders.CONTENT_LENGTH_NAME)) {
             setContentLength(Integer.parseInt(value));
         }
-        if (name.toLowerCase() == DefaultHeaders.CONTENT_TYPE_NAME) {
+        if (name.equalsIgnoreCase(DefaultHeaders.CONTENT_TYPE_NAME)) {
             setContentType(value);
         }
     }
@@ -314,6 +316,9 @@ public class HttpResponse implements HttpServletResponse {
 
     public void finishResponse() {
         try {
+            if (!headersSent) {
+                headersSent = true;
+            }
             this.getWriter().flush();
         } catch (IOException e) {
             throw new RuntimeException(e);

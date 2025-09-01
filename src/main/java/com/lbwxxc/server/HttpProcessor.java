@@ -50,6 +50,8 @@ public class HttpProcessor implements Runnable {
         InputStream inputStream;
         OutputStream outputStream;
         try {
+
+            socket.setSoTimeout(10);
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
             HttpRequest httpRequest = new HttpRequest(inputStream);
@@ -60,6 +62,7 @@ public class HttpProcessor implements Runnable {
             }
             HttpResponse httpResponse = new HttpResponse(outputStream);
             httpResponse.setRequest(httpRequest);
+            httpResponse.setContentLengthLong(1000L);
             httpResponse.sendHeaders();
             if (httpRequest.getUri().startsWith("/servlet/")) {
                 log.info("访问动态资源");
@@ -69,8 +72,12 @@ public class HttpProcessor implements Runnable {
                 StaticResourceProcessor staticResourceProcessor = new StaticResourceProcessor();
                 staticResourceProcessor.process(httpRequest, httpResponse);
             }
-            log.info("response header connection----- {}", httpResponse.getHeader("Connection"));
+
             finishResponse(httpResponse);
+            log.info("response header connection----- {}", httpRequest.getHeader("connection"));
+            keepAlive = httpRequest.getHeader("connection") != null
+                    && httpRequest.getHeader("connection").equalsIgnoreCase("keep-alive");
+
 
             socket.close();
             socket = null;
