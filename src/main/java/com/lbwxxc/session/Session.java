@@ -1,100 +1,114 @@
-package com.lbwxxc.server;
+package com.lbwxxc.session;
 
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionContext;
 
-public class SessionFacade implements HttpSession {
-    private HttpSession session;
+public class Session implements HttpSession {
 
-    public SessionFacade(HttpSession session) {
-        this.session = session;
-    }
+    private String sessionid;
+    private long creationTime;
+    private boolean valid;
+    private Map<String,Object> attributes = new ConcurrentHashMap<>();
 
     @Override
     public long getCreationTime() {
-        return session.getCreationTime();
+        return this.creationTime;
     }
 
     @Override
     public String getId() {
-        return session.getId();
+        return this.sessionid;
     }
 
     @Override
     public long getLastAccessedTime() {
-        return session.getLastAccessedTime();
+        return 0;
     }
 
     @Override
     public ServletContext getServletContext() {
-        return session.getServletContext();
+        return null;
     }
 
     @Override
     public void setMaxInactiveInterval(int interval) {
-        session.setMaxInactiveInterval(interval);
     }
 
     @Override
     public int getMaxInactiveInterval() {
-        return session.getMaxInactiveInterval();
+        return 0;
     }
 
     @Override
     public HttpSessionContext getSessionContext() {
-        return session.getSessionContext();
+        return null;
     }
 
     @Override
     public Object getAttribute(String name) {
-        return session.getAttribute(name);
+        return this.attributes.get(name);
     }
 
     @Override
     public Object getValue(String name) {
-        return session.getValue(name);
+        return this.attributes.get(name);
     }
 
     @Override
     public Enumeration<String> getAttributeNames() {
-        return session.getAttributeNames();
+        return Collections.enumeration(this.attributes.keySet());
     }
 
     @Override
     public String[] getValueNames() {
-        return session.getValueNames();
+        return null;
     }
 
     @Override
     public void setAttribute(String name, Object value) {
-        session.setAttribute(name, value);
+        this.attributes.put(name, value);
     }
 
     @Override
     public void putValue(String name, Object value) {
-        session.putValue(name, value);
+        this.attributes.put(name, value);
     }
 
     @Override
     public void removeAttribute(String name) {
-        session.removeAttribute(name);
+        this.attributes.remove(name);
     }
 
     @Override
     public void removeValue(String name) {
-        session.removeValue(name);
     }
 
     @Override
     public void invalidate() {
-        session.invalidate();
+        this.valid = false;
     }
 
     @Override
     public boolean isNew() {
-        return session.isNew();
+        return false;
+    }
+
+    public void setValid(boolean b) {
+        this.valid = b;
+    }
+
+    public void setCreationTime(long currentTimeMillis) {
+        this.creationTime = currentTimeMillis;
+
+    }
+
+    public void setId(String sessionId) {
+        this.sessionid = sessionId;
     }
 }

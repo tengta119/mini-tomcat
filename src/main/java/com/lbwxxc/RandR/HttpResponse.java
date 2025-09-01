@@ -1,4 +1,4 @@
-package com.lbwxxc.server;
+package com.lbwxxc.RandR;
 
 import com.lbwxxc.utils.CookieTools;
 import org.slf4j.Logger;

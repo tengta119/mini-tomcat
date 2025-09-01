@@ -1,4 +1,4 @@
-package com.lbwxxc.server;
+package com.lbwxxc.RandR;
 
 import java.io.IOException;
 import java.io.PrintWriter;

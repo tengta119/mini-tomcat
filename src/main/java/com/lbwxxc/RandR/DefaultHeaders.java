@@ -1,4 +1,4 @@
-package com.lbwxxc.server;
+package com.lbwxxc.RandR;
 
 public class DefaultHeaders {
     public static final String HOST_NAME = "host";

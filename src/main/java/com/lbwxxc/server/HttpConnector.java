@@ -1,6 +1,8 @@
 package com.lbwxxc.server;
 
 
+import com.lbwxxc.HttpServer;
+import com.lbwxxc.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

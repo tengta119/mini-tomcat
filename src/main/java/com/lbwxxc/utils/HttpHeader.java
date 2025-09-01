@@ -1,4 +1,4 @@
-package com.lbwxxc.server;
+package com.lbwxxc.utils;
 
 public class HttpHeader {
     public static final int INITIAL_NAME_SIZE = 64;

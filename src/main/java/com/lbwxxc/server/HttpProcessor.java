@@ -1,6 +1,8 @@
 package com.lbwxxc.server;
 
 
+import com.lbwxxc.RandR.HttpRequest;
+import com.lbwxxc.RandR.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +64,6 @@ public class HttpProcessor implements Runnable {
             }
             HttpResponse httpResponse = new HttpResponse(outputStream);
             httpResponse.setRequest(httpRequest);
-            httpResponse.setContentLengthLong(1000L);
             httpResponse.sendHeaders();
             if (httpRequest.getUri().startsWith("/servlet/")) {
                 log.info("访问动态资源");

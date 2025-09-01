@@ -1,5 +1,7 @@
 package com.lbwxxc.server;
 
+import com.lbwxxc.RandR.HttpRequestLine;
+import com.lbwxxc.utils.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +24,7 @@ public class SocketInputStream extends ServletInputStream {
     protected byte[] buf;
     protected int count;
     protected int pos;
-    protected InputStream is;
+    public InputStream is;
 
     public SocketInputStream(InputStream is, int bufferSize) {
         this.is = is;
