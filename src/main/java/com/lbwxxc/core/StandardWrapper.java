@@ -1,5 +1,6 @@
 package com.lbwxxc.core;
 
+import com.lbwxxc.Logger;
 import com.lbwxxc.Wrapper;
 
 import javax.servlet.Servlet;
@@ -11,7 +12,7 @@ import java.io.IOException;
 public class StandardWrapper extends ContainerBase implements Wrapper {
     private Servlet instance = null;
     private String servletClass;
-
+    Logger logger;
 
     public StandardWrapper(String servletClass, StandardContext parent) {
         this.parent = parent;
@@ -144,6 +145,16 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return logger;
+    }
+
+    @Override
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 
     @Override

@@ -7,7 +7,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public interface Container {
-
+    public Logger getLogger();
+    public void setLogger(Logger logger);
     public static final String ADD_CHILD_EVENT = "addChild";
     public static final String REMOVE_CHILD_EVENT = "removeChild";
     public String getInfo();

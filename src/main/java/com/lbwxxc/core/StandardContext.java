@@ -1,6 +1,7 @@
 package com.lbwxxc.core;
 
 import com.lbwxxc.Context;
+import com.lbwxxc.Logger;
 import com.lbwxxc.Wrapper;
 import com.lbwxxc.connect.http.HttpRequestImpl;
 import com.lbwxxc.connect.HttpRequestFacade;
@@ -24,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StandardContext extends ContainerBase implements Context {
     HttpConnector connector;
     ClassLoader loader;
-
     Map<String, String> servletClsMap = new ConcurrentHashMap<>();
     Map<String, StandardWrapper> servletInstanceMap = new ConcurrentHashMap<>();
 
@@ -39,6 +39,7 @@ public class StandardContext extends ContainerBase implements Context {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        log("Container created.");
     }
 
     @Override

@@ -23,10 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class HttpConnector implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(HttpConnector.class);
-
+    private String info = "com.lbwxxc.connect.http.HttpConnector/0.1";
     int minProcessors = 3;
     int maxProcessors = 10;
     int curProcessor = 0;
+    private int port = 8080;
+    private String threadName = null;
     final Deque<HttpProcessor> processors = new ArrayDeque<>();
     // sessions map 存放 session
     public static Map<String, HttpSession> sessions = new ConcurrentHashMap<>();
@@ -124,6 +126,8 @@ public class HttpConnector implements Runnable {
     public void start() {
         Thread thread = new Thread(this);
         thread.start();
+        threadName = "HttpConnector[" + port + "]";
+        log("httpConnector.starting " + threadName);
     }
 
 
@@ -177,5 +181,31 @@ public class HttpConnector implements Runnable {
 
     public void setContainer(StandardContext container) {
         this.container = container;
+    }
+
+    private void log(String message) {
+        com.lbwxxc.Logger  logger = container.getLogger();
+        String localName = threadName;
+        if (localName == null)
+            localName = "HttpConnector";
+        if (logger != null)
+            logger.log(localName + " " + message);
+        else
+            System.out.println(localName + " " + message);
+
+    }
+
+    private void log(String message, Throwable throwable) {
+        com.lbwxxc.Logger  logger = container.getLogger();
+        String localName = threadName;
+        if (localName == null)
+            localName = "HttpConnector";
+        if (logger != null)
+            logger.log(localName + " " + message, throwable);
+        else {
+            System.out.println(localName + " " + message);
+            throwable.printStackTrace(System.out);
+        }
+
     }
 }
