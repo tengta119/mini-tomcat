@@ -1,4 +1,6 @@
-package com.lbwxxc.RandR;
+package com.lbwxxc.connect;
+
+import com.lbwxxc.connect.http.HttpResponseImpl;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class HttpResponseFacade implements HttpServletResponse {
     private HttpServletResponse response;
-    public HttpResponseFacade(HttpResponse response) {
+    public HttpResponseFacade(HttpResponseImpl response) {
         this.response = response;
     }
 

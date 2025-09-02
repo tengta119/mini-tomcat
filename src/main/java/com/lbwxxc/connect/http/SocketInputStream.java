@@ -1,7 +1,5 @@
-package com.lbwxxc.server;
+package com.lbwxxc.connect.http;
 
-import com.lbwxxc.RandR.HttpRequestLine;
-import com.lbwxxc.utils.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

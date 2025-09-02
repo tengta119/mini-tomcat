@@ -1,4 +1,4 @@
-package com.lbwxxc.RandR;
+package com.lbwxxc.connect.http;
 
 public class HttpRequestLine {
 

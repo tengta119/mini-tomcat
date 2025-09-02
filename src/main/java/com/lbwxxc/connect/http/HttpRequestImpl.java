@@ -1,12 +1,11 @@
-package com.lbwxxc.RandR;
+package com.lbwxxc.connect.http;
 
-import com.lbwxxc.server.*;
-import com.lbwxxc.session.SessionFacade;
-import com.lbwxxc.utils.HttpHeader;
+import com.lbwxxc.session.StandardSessionFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.*;
+import javax.servlet.ServletContext;
 import javax.servlet.http.*;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,9 +16,9 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpRequest implements HttpServletRequest {
+public class HttpRequestImpl implements HttpServletRequest {
 
-    private static final Logger log = LoggerFactory.getLogger(HttpRequest.class);
+    private static final Logger log = LoggerFactory.getLogger(HttpRequestImpl.class);
 
     private InputStream input;
     private SocketInputStream sis;
@@ -35,10 +34,10 @@ public class HttpRequest implements HttpServletRequest {
     Cookie[] cookies;
     HttpSession session;
     String sessionid;
-    SessionFacade sessionFacade;
+    StandardSessionFacade standardSessionFacade;
     boolean parsed = false;
-    HttpResponse httpResponse;
-    public HttpRequest(InputStream input) {
+    HttpResponseImpl httpResponseImpl;
+    public HttpRequestImpl(InputStream input) {
         this.input = input;
         this.sis = new SocketInputStream(this.input, 2048);
     }
@@ -391,23 +390,23 @@ public class HttpRequest implements HttpServletRequest {
 
     @Override
     public HttpSession getSession(boolean b) {
-        if (sessionFacade != null)
-            return sessionFacade;
+        if (standardSessionFacade != null)
+            return standardSessionFacade;
         if (sessionid != null) {
             session = HttpConnector.sessions.get(sessionid);
             if (session != null) {
-                sessionFacade = new SessionFacade(session);
-                return sessionFacade;
+                standardSessionFacade = new StandardSessionFacade(session);
+                return standardSessionFacade;
             } else {
                 session = HttpConnector.createSession();
-                sessionFacade = new SessionFacade(session);
-                return sessionFacade;
+                standardSessionFacade = new StandardSessionFacade(session);
+                return standardSessionFacade;
             }
         } else {
             session = HttpConnector.createSession();
-            sessionFacade = new SessionFacade(session);
+            standardSessionFacade = new StandardSessionFacade(session);
             sessionid = session.getId();
-            return sessionFacade;
+            return standardSessionFacade;
         }
     }
 
@@ -420,8 +419,8 @@ public class HttpRequest implements HttpServletRequest {
         this.sis = new SocketInputStream(this.input, 2028);
     }
 
-    public void setResponse(HttpResponse response) {
-        this.httpResponse = response;
+    public void setResponse(HttpResponseImpl response) {
+        this.httpResponseImpl = response;
     }
 
     @Override

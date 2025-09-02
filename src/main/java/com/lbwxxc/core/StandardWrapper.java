@@ -1,6 +1,6 @@
-package com.lbwxxc.server;
+package com.lbwxxc.core;
 
-import com.lbwxxc.server.ServletContainer;
+import com.lbwxxc.Wrapper;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -8,14 +8,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class ServletWrapper {
+public class StandardWrapper extends ContainerBase implements Wrapper {
     private Servlet instance = null;
     private String servletClass;
-    private ClassLoader loader;
-    private String name;
-    protected ServletContainer parent = null;
 
-    public ServletWrapper(String servletClass, ServletContainer parent) {
+
+    public StandardWrapper(String servletClass, StandardContext parent) {
         this.parent = parent;
         this.servletClass = servletClass;
 
@@ -27,16 +25,59 @@ public class ServletWrapper {
             return loader;
         return parent.getLoader();
     }
+
+    @Override
+    public int getLoadOnStartup() {
+        return 0;
+    }
+
+    @Override
+    public void setLoadOnStartup(int value) {
+
+    }
+
     public String getServletClass() {
         return servletClass;
     }
     public void setServletClass(String servletClass) {
         this.servletClass = servletClass;
     }
-    public ServletContainer getParent() {
-        return parent;
+
+    @Override
+    public void addInitParameter(String name, String value) {
+
     }
-    public void setParent(ServletContainer container) {
+
+    @Override
+    public Servlet allocate() throws ServletException {
+        return null;
+    }
+
+    @Override
+    public String findInitParameter(String name) {
+        return "";
+    }
+
+    @Override
+    public String[] findInitParameters() {
+        return new String[0];
+    }
+
+    @Override
+    public void load() throws ServletException {
+
+    }
+
+    @Override
+    public void removeInitParameter(String name) {
+
+    }
+
+    public StandardContext getParent() {
+        return (StandardContext) parent;
+    }
+
+    public void setParent(StandardContext container) {
         parent = container;
     }
     public Servlet getServlet(){
@@ -103,5 +144,10 @@ public class ServletWrapper {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String getInfo() {
+        return "";
     }
 }

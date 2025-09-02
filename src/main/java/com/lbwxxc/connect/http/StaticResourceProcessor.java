@@ -1,9 +1,7 @@
-package com.lbwxxc.server;
+package com.lbwxxc.connect.http;
 
 
-import com.lbwxxc.HttpServer;
-import com.lbwxxc.RandR.HttpRequest;
-import com.lbwxxc.RandR.HttpResponse;
+import com.lbwxxc.startup.Bootstrap;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
 import java.io.*;
@@ -37,8 +35,8 @@ public class StaticResourceProcessor {
             \r
             """;
 
-    public void process(HttpRequest request, HttpResponse response) {
-        try (FileInputStream fis = new FileInputStream(new File(HttpServer.WEB_ROOT, request.getUri()))) {
+    public void process(HttpRequestImpl request, HttpResponseImpl response) {
+        try (FileInputStream fis = new FileInputStream(new File(Bootstrap.WEB_ROOT, request.getUri()))) {
 
             OutputStream out = response.getOutput();
             out.write(composeResponseHead(fis.available()).getBytes(StandardCharsets.UTF_8));

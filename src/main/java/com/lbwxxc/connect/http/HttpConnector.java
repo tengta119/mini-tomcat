@@ -1,13 +1,12 @@
-package com.lbwxxc.server;
+package com.lbwxxc.connect.http;
 
 
-import com.lbwxxc.HttpServer;
-import com.lbwxxc.session.Session;
+import com.lbwxxc.core.StandardContext;
+import com.lbwxxc.session.StandardSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpSession;
-import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayDeque;
@@ -34,7 +33,7 @@ public class HttpConnector implements Runnable {
     //一个全局的class loader
     public static URLClassLoader loader = null;
     //这是与connector相关联的container
-    ServletContainer container = null;
+    StandardContext container = null;
     @Override
     public void run() {
         ServerSocket serverSocket;
@@ -86,14 +85,14 @@ public class HttpConnector implements Runnable {
         return null;
     }
 
-    public static Session createSession() {
-        Session session = new Session();
-        session.setValid(true);
-        session.setCreationTime(System.currentTimeMillis());
+    public static StandardSession createSession() {
+        StandardSession standardSession = new StandardSession();
+        standardSession.setValid(true);
+        standardSession.setCreationTime(System.currentTimeMillis());
         String sessionId = generateSessionId();
-        session.setId(sessionId);
-        sessions.put(sessionId, session);
-        return (session);
+        standardSession.setId(sessionId);
+        sessions.put(sessionId, standardSession);
+        return (standardSession);
     }
 
     protected static synchronized String generateSessionId() {
@@ -118,7 +117,7 @@ public class HttpConnector implements Runnable {
         return (result.toString());
     }
 
-    void recycle(HttpProcessor processor) {
+    public void recycle(HttpProcessor processor) {
         processors.push(processor);
     }
 
@@ -172,11 +171,11 @@ public class HttpConnector implements Runnable {
         HttpConnector.loader = loader;
     }
 
-    public ServletContainer getContainer() {
+    public StandardContext getContainer() {
         return container;
     }
 
-    public void setContainer(ServletContainer container) {
+    public void setContainer(StandardContext container) {
         this.container = container;
     }
 }

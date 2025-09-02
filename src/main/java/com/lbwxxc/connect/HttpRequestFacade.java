@@ -1,4 +1,6 @@
-package com.lbwxxc.RandR;
+package com.lbwxxc.connect;
+
+import com.lbwxxc.connect.http.HttpRequestImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,7 +29,7 @@ import javax.servlet.http.Part;
 public class HttpRequestFacade implements HttpServletRequest {
     private HttpServletRequest request;
 
-    public HttpRequestFacade(HttpRequest request) {
+    public HttpRequestFacade(HttpRequestImpl request) {
         this.request = request;
     }
 

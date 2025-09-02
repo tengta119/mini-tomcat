@@ -1,8 +1,6 @@
-package com.lbwxxc.server;
+package com.lbwxxc.connect.http;
 
 
-import com.lbwxxc.RandR.HttpRequest;
-import com.lbwxxc.RandR.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,28 +53,28 @@ public class HttpProcessor implements Runnable {
 
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
-            HttpRequest httpRequest = new HttpRequest(inputStream);
-            httpRequest.parse(socket);
-            if (httpRequest.getSessionid() == null || httpRequest.getSessionid().isEmpty()) {
+            HttpRequestImpl httpRequestImpl = new HttpRequestImpl(inputStream);
+            httpRequestImpl.parse(socket);
+            if (httpRequestImpl.getSessionid() == null || httpRequestImpl.getSessionid().isEmpty()) {
                 // 尝试获取 session，如果没有则创建
-                httpRequest.getSession(true);
+                httpRequestImpl.getSession(true);
             }
-            HttpResponse httpResponse = new HttpResponse(outputStream);
-            httpResponse.setRequest(httpRequest);
-            httpResponse.sendHeaders();
-            if (httpRequest.getUri().startsWith("/servlet/")) {
+            HttpResponseImpl httpResponseImpl = new HttpResponseImpl(outputStream);
+            httpResponseImpl.setRequest(httpRequestImpl);
+            httpResponseImpl.sendHeaders();
+            if (httpRequestImpl.getUri().startsWith("/servlet/")) {
                 log.info("访问动态资源");
                 ServletProcessor servletProcessor = new ServletProcessor(connector);
-                servletProcessor.process(httpRequest, httpResponse);
+                servletProcessor.process(httpRequestImpl, httpResponseImpl);
             } else {
                 StaticResourceProcessor staticResourceProcessor = new StaticResourceProcessor();
-                staticResourceProcessor.process(httpRequest, httpResponse);
+                staticResourceProcessor.process(httpRequestImpl, httpResponseImpl);
             }
 
-            finishResponse(httpResponse);
-            log.info("response header connection----- {}", httpRequest.getHeader("connection"));
-            keepAlive = httpRequest.getHeader("connection") != null
-                    && httpRequest.getHeader("connection").equalsIgnoreCase("keep-alive");
+            finishResponse(httpResponseImpl);
+            log.info("response header connection----- {}", httpRequestImpl.getHeader("connection"));
+            keepAlive = httpRequestImpl.getHeader("connection") != null
+                    && httpRequestImpl.getHeader("connection").equalsIgnoreCase("keep-alive");
 
 
             socket.close();
@@ -86,11 +84,11 @@ public class HttpProcessor implements Runnable {
         }
     }
 
-    private void finishResponse(HttpResponse response) {
+    private void finishResponse(HttpResponseImpl response) {
         response.finishResponse();
     }
 
-    synchronized void assign(Socket socket) {
+    public synchronized void assign(Socket socket) {
         while (available) {
             try {
                 wait();

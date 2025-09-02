@@ -1,8 +1,8 @@
-package com.lbwxxc;
+package com.lbwxxc.startup;
 
 
-import com.lbwxxc.server.HttpConnector;
-import com.lbwxxc.server.ServletContainer;
+import com.lbwxxc.connect.http.HttpConnector;
+import com.lbwxxc.core.StandardContext;
 
 import java.io.File;
 
@@ -11,15 +11,15 @@ import java.io.File;
  * @date 2025/8/13 17:21
  * @description:
  */
-public class HttpServer {
+public class Bootstrap {
 
     public static final String WEB_ROOT = System.getProperty("user.dir") + File.separator + "webroot";
 
     public static void main(String[] args) {
         HttpConnector httpConnector = new HttpConnector();
-        ServletContainer servletContainer = new ServletContainer();
-        httpConnector.setContainer(servletContainer);
-        servletContainer.setConnector(httpConnector);
+        StandardContext standardContext = new StandardContext();
+        httpConnector.setContainer(standardContext);
+        standardContext.setConnector(httpConnector);
         httpConnector.start();
     }
 

@@ -1,16 +1,8 @@
-package com.lbwxxc.server;
+package com.lbwxxc.connect.http;
 
 
-import com.lbwxxc.RandR.HttpRequest;
-import com.lbwxxc.RandR.HttpRequestFacade;
-import com.lbwxxc.RandR.HttpResponse;
-import com.lbwxxc.RandR.HttpResponseFacade;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.net.URLClassLoader;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -43,7 +35,7 @@ public class ServletProcessor {
         this.connector = connector;
     }
 
-    public void process(HttpRequest request, HttpResponse response) {
+    public void process(HttpRequestImpl request, HttpResponseImpl response) {
         this.connector.getContainer().invoke(request, response);
     }
 

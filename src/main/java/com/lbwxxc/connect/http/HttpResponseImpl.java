@@ -1,4 +1,4 @@
-package com.lbwxxc.RandR;
+package com.lbwxxc.connect.http;
 
 import com.lbwxxc.utils.CookieTools;
 import org.slf4j.Logger;
@@ -15,9 +15,9 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpResponse implements HttpServletResponse {
-    private static final Logger log = LoggerFactory.getLogger(HttpResponse.class);
-    HttpRequest request;
+public class HttpResponseImpl implements HttpServletResponse {
+    private static final Logger log = LoggerFactory.getLogger(HttpResponseImpl.class);
+    HttpRequestImpl request;
     OutputStream output;
     PrintWriter writer;
 
@@ -32,11 +32,11 @@ public class HttpResponse implements HttpServletResponse {
     int status = HttpServletResponse.SC_OK;
     boolean headersSent = false;
 
-    public HttpResponse(OutputStream output) {
+    public HttpResponseImpl(OutputStream output) {
         this.output = output;
     }
 
-    public void setRequest(HttpRequest request) {
+    public void setRequest(HttpRequestImpl request) {
         this.request = request;
     }
 
