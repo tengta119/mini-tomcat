@@ -1,5 +1,6 @@
 package com.lbwxxc.connect.http;
 
+import com.lbwxxc.*;
 import com.lbwxxc.session.StandardSessionFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ import java.security.Principal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HttpRequestImpl implements HttpServletRequest {
+public class HttpRequestImpl implements HttpServletRequest, Request {
 
     private static final Logger log = LoggerFactory.getLogger(HttpRequestImpl.class);
 
@@ -414,9 +415,119 @@ public class HttpRequestImpl implements HttpServletRequest {
         return sessionid;
     }
 
+    @Override
+    public Connector getConnector() {
+        return null;
+    }
+
+    @Override
+    public void setConnector(Connector connector) {
+
+    }
+
+    @Override
+    public Context getContext() {
+        return null;
+    }
+
+    @Override
+    public void setContext(Context context) {
+
+    }
+
+    @Override
+    public String getInfo() {
+        return "";
+    }
+
+    @Override
+    public ServletRequest getRequest() {
+        return null;
+    }
+
+    @Override
+    public Response getResponse() {
+        return null;
+    }
+
+    @Override
+    public void setResponse(Response response) {
+
+    }
+
+    @Override
+    public Socket getSocket() {
+        return null;
+    }
+
+    @Override
+    public void setSocket(Socket socket) {
+
+    }
+
+    @Override
+    public InputStream getStream() {
+        return null;
+    }
+
     public void setStream(InputStream input) {
         this.input = input;
         this.sis = new SocketInputStream(this.input, 2028);
+    }
+
+    @Override
+    public Wrapper getWrapper() {
+        return null;
+    }
+
+    @Override
+    public void setWrapper(Wrapper wrapper) {
+
+    }
+
+    @Override
+    public ServletInputStream createInputStream() throws IOException {
+        return null;
+    }
+
+    @Override
+    public void finishRequest() throws IOException {
+
+    }
+
+    @Override
+    public void recycle() {
+
+    }
+
+    @Override
+    public void setContentLength(int length) {
+
+    }
+
+    @Override
+    public void setContentType(String type) {
+
+    }
+
+    @Override
+    public void setProtocol(String protocol) {
+
+    }
+
+    @Override
+    public void setRemoteAddr(String remote) {
+
+    }
+
+    @Override
+    public void setScheme(String scheme) {
+
+    }
+
+    @Override
+    public void setServerPort(int port) {
+
     }
 
     public void setResponse(HttpResponseImpl response) {

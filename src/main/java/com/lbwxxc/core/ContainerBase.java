@@ -1,9 +1,10 @@
 package com.lbwxxc.core;
 
 
-import com.lbwxxc.Container;
-import com.lbwxxc.Logger;
+import com.lbwxxc.*;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,19 +13,25 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2025/9/2 16:39
  * @description:
  */
-public abstract class ContainerBase implements Container {
+public abstract class ContainerBase implements Container, Pipeline {
     protected final Map<String, Container> children = new ConcurrentHashMap<>();
     protected ClassLoader loader = null;
     protected String name = null;
     protected Container parent = null;
     Logger logger = null;
     public abstract String getInfo();
+    protected Pipeline pipeline = new StandardPipeline(this);
     public ClassLoader getLoader() {
         if (loader != null)
             return (loader);
         if (parent != null)
             return (parent.getLoader());
         return (null);
+    }
+
+    public void invoke(Request request, Response response) throws IOException, ServletException {
+        System.out.println("ContainerBase invoke()");
+        pipeline.invoke(request, response);
     }
 
     public synchronized void setLoader(ClassLoader loader) {
@@ -139,5 +146,29 @@ public abstract class ContainerBase implements Container {
         }
         child.setParent(null);
 
+    }
+
+    public synchronized void addValve(Valve valve) {
+        pipeline.addValve(valve);
+    }
+
+    public Valve getBasic() {
+        return (pipeline.getBasic());
+    }
+
+    public Valve[] getValves() {
+        return (pipeline.getValves());
+    }
+
+    public synchronized void removeValve(Valve valve) {
+        pipeline.removeValve(valve);
+    }
+
+    public void setBasic(Valve valve) {
+        pipeline.setBasic(valve);
+    }
+
+    public Object getWrapper(String servletName) {
+        return children.get(servletName);
     }
 }

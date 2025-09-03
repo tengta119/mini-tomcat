@@ -4,6 +4,7 @@ package com.lbwxxc.connect.http;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.ServletException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -79,7 +80,7 @@ public class HttpProcessor implements Runnable {
 
             socket.close();
             socket = null;
-        } catch (IOException e) {
+        } catch (IOException | ServletException e) {
             throw new RuntimeException(e);
         }
     }

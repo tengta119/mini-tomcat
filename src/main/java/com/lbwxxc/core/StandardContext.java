@@ -1,19 +1,11 @@
 package com.lbwxxc.core;
 
-import com.lbwxxc.Context;
-import com.lbwxxc.Logger;
-import com.lbwxxc.Wrapper;
-import com.lbwxxc.connect.http.HttpRequestImpl;
-import com.lbwxxc.connect.HttpRequestFacade;
-import com.lbwxxc.connect.http.HttpResponseImpl;
-import com.lbwxxc.connect.HttpResponseFacade;
+import com.lbwxxc.*;
 import com.lbwxxc.connect.http.HttpConnector;
+import com.lbwxxc.startup.Bootstrap;
 
-import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -23,178 +15,112 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class StandardContext extends ContainerBase implements Context {
-    HttpConnector connector;
-    ClassLoader loader;
-    Map<String, String> servletClsMap = new ConcurrentHashMap<>();
-    Map<String, StandardWrapper> servletInstanceMap = new ConcurrentHashMap<>();
+    HttpConnector connector = null;
+    Map<String,String> servletClsMap = new ConcurrentHashMap<>(); //servletName - ServletClassName
+    Map<String,StandardWrapper> servletInstanceMap = new ConcurrentHashMap<>();//servletName - servletWrapper
 
     public StandardContext() {
-        URL[] urls = new URL[1];
-        URLStreamHandler streamHandler = null;
-        File classPath = new File("target/classes/com/lbwxxc/test");
+        super();
+        pipeline.setBasic(new StandardContextValve());
         try {
-            String repository = (new URL("file", null,  classPath.getCanonicalPath() + File.separator)).toString();
+            // create a URLClassLoader
+            URL[] urls = new URL[1];
+            URLStreamHandler streamHandler = null;
+            File classPath = new File(Bootstrap.WEB_ROOT);
+            String repository = (new URL("file", null, classPath.getCanonicalPath() + File.separator)).toString() ;
             urls[0] = new URL(null, repository, streamHandler);
             loader = new URLClassLoader(urls);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println(e.toString() );
         }
         log("Container created.");
     }
-
-    @Override
-    public void invoke(HttpServletRequest request, HttpServletResponse response) {
-
-    }
-
-    public void invoke(HttpRequestImpl request, HttpResponseImpl response) {
-        StandardWrapper servlet = null;
-        ClassLoader loader = getLoader();
-        String uri = request.getUri();
-        String servletName = uri.substring(uri.lastIndexOf("/") + 1);
-        String servletClassName = servletName;
-        servlet = servletInstanceMap.get(servletName);
-
-
-        if (servlet == null) {
-            Class<?> servletClass = null;
-            try {
-                servletClass =  loader.loadClass("com.lbwxxc.test.HelloServlet");
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-
-            try {
-                servlet = new StandardWrapper(servletClassName, this);
-                servlet.setInstance((Servlet) servletClass.newInstance());
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-
-            servletClsMap.put(servletName, servletClassName);
-            servletInstanceMap.put(servletName, servlet);
-        }
-
-        try {
-            HttpRequestFacade requestFacade = new HttpRequestFacade(request);
-            HttpResponseFacade responseFacade = new HttpResponseFacade(response);
-            System.out.println("Call service()");
-            servlet.invoke(requestFacade, responseFacade);
-        } catch (ServletException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    public HttpConnector getConnector() {
-        return connector;
-    }
-
-    public void setConnector(HttpConnector connector) {
-        this.connector = connector;
-    }
-
-    @Override
     public String getInfo() {
         return "Minit Servlet Context, vesion 0.1";
     }
 
-    public ClassLoader getLoader() {
-        return loader;
+    public HttpConnector getConnector() {
+        return connector;
+    }
+    public void setConnector(HttpConnector connector) {
+        this.connector = connector;
     }
 
-    public void setLoader(ClassLoader loader) {
-        this.loader = loader;
-    }
+    public void invoke(Request request, Response response) throws IOException, ServletException {
+        System.out.println("StandardContext invoke()");
 
-    public Map<String, String> getServletClsMap() {
-        return servletClsMap;
-    }
-
-    public void setServletClsMap(Map<String, String> servletClsMap) {
-        this.servletClsMap = servletClsMap;
-    }
-
-    public Map<String, StandardWrapper> getServletInstanceMap() {
-        return servletInstanceMap;
-    }
-
-    public void setServletInstanceMap(Map<String, StandardWrapper> servletInstanceMap) {
-        this.servletInstanceMap = servletInstanceMap;
+        super.invoke(request, response);
     }
 
     @Override
     public String getDisplayName() {
-        return "";
+        // TODO Auto-generated method stub
+        return null;
     }
-
     @Override
     public void setDisplayName(String displayName) {
+        // TODO Auto-generated method stub
 
     }
-
     @Override
     public String getDocBase() {
-        return "";
+        // TODO Auto-generated method stub
+        return null;
     }
-
     @Override
     public void setDocBase(String docBase) {
+        // TODO Auto-generated method stub
 
     }
-
     @Override
     public String getPath() {
-        return "";
+        return null;
     }
-
     @Override
     public void setPath(String path) {
 
     }
-
     @Override
     public ServletContext getServletContext() {
         return null;
     }
-
     @Override
     public int getSessionTimeout() {
         return 0;
     }
-
     @Override
     public void setSessionTimeout(int timeout) {
-
     }
-
     @Override
     public String getWrapperClass() {
-        return "";
+        return null;
     }
-
     @Override
     public void setWrapperClass(String wrapperClass) {
-
     }
-
     @Override
     public Wrapper createWrapper() {
         return null;
     }
-
+    public Wrapper getWrapper(String name){
+        StandardWrapper servletWrapper = servletInstanceMap.get(name);
+        if ( servletWrapper == null) {
+            String servletClassName = name;
+            servletWrapper = new StandardWrapper(servletClassName,this);
+            this.servletClsMap.put(name, servletClassName);
+            this.servletInstanceMap.put(name, servletWrapper);
+        }
+        return servletWrapper;
+    }
     @Override
     public String findServletMapping(String pattern) {
-        return "";
+        return null;
     }
-
     @Override
     public String[] findServletMappings() {
-        return new String[0];
+        return null;
     }
-
     @Override
     public void reload() {
-
     }
 }

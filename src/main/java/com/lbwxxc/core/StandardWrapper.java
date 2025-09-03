@@ -1,12 +1,12 @@
 package com.lbwxxc.core;
 
 import com.lbwxxc.Logger;
+import com.lbwxxc.Request;
+import com.lbwxxc.Response;
 import com.lbwxxc.Wrapper;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class StandardWrapper extends ContainerBase implements Wrapper {
@@ -15,9 +15,11 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
     Logger logger;
 
     public StandardWrapper(String servletClass, StandardContext parent) {
+        super();
+        pipeline.setBasic(new StandardWrapperValve());
         this.parent = parent;
         this.servletClass = servletClass;
-
+        loadServlet();
         //loadServlet();
     }
 
@@ -85,13 +87,13 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
         return this.instance;
     }
 
-    public Servlet loadServlet() throws ServletException {
-        if (instance!=null)
+    public Servlet loadServlet()  {
+        if (instance != null)
             return instance;
         Servlet servlet = null;
         String actualClass = servletClass;
         if (actualClass == null) {
-            throw new ServletException("servlet class has not been specified");
+
         }
         ClassLoader classLoader = getLoader();
         Class classClass = null;
@@ -101,30 +103,35 @@ public class StandardWrapper extends ContainerBase implements Wrapper {
             }
         }
         catch (ClassNotFoundException e) {
-            throw new ServletException("Servlet class not found");
+            log(e.getMessage());
         }
         try {
             servlet = (Servlet) classClass.newInstance();
         }
         catch (Throwable e) {
-            throw new ServletException("Failed to instantiate servlet");
+            log(e.getMessage());
         }
 
         try {
             servlet.init(null);
         }
         catch (Throwable f) {
-            throw new ServletException("Failed initialize servlet.");
+            log(f.getMessage());
         }
         instance = servlet;
+
+        try {
+            Class<?> aClass = getLoader().loadClass("com.lbwxxc.test.HelloServlet");
+            instance = (Servlet) aClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         return servlet;
     }
 
-    public void invoke(HttpServletRequest request, HttpServletResponse response)
+    public void invoke(Request request, Response response)
             throws IOException, ServletException {
-        if (instance != null) {
-            instance.service(request, response);
-        }
+        super.invoke(request, response);
     }
 
     public Servlet getInstance() {

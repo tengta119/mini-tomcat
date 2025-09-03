@@ -3,6 +3,8 @@ package com.lbwxxc.connect.http;
 
 import org.apache.commons.lang3.text.StrSubstitutor;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -35,7 +37,7 @@ public class ServletProcessor {
         this.connector = connector;
     }
 
-    public void process(HttpRequestImpl request, HttpResponseImpl response) {
+    public void process(HttpRequestImpl request, HttpResponseImpl response) throws ServletException, IOException {
         this.connector.getContainer().invoke(request, response);
     }
 

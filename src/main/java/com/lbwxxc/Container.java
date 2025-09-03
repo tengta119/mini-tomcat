@@ -21,7 +21,7 @@ public interface Container {
     public void addChild(Container child);
     public Container findChild(String name);
     public Container[] findChildren();
-    public void invoke(HttpServletRequest request, HttpServletResponse response)
+    public void invoke(Request request, Response response)
             throws IOException, ServletException;
     public void removeChild(Container child);
 }
