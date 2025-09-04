@@ -3,6 +3,7 @@ package com.lbwxxc.startup;
 
 import com.lbwxxc.Logger;
 import com.lbwxxc.connect.http.HttpConnector;
+import com.lbwxxc.core.ContainerListenerDef;
 import com.lbwxxc.core.FilterDef;
 import com.lbwxxc.core.FilterMap;
 import com.lbwxxc.core.StandardContext;
@@ -39,7 +40,12 @@ public class Bootstrap {
         filterMap.setFilterName("TestFilter");
         filterMap.setURLPattern("/*");
         container.addFilterMap(filterMap);
-
+        ContainerListenerDef listenerDef = new ContainerListenerDef();
+        listenerDef.setListenerName("TestListener");
+        listenerDef.setListenerClass("com.lbwxxc.test.TestListener");
+        container.addListenerDef(listenerDef);
+        container.listenerStart();
+        container.start();
         container.filterStart();
         connector.start();
     }

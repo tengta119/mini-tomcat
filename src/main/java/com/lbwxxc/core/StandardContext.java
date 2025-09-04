@@ -7,12 +7,13 @@ import com.lbwxxc.startup.Bootstrap;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import java.awt.event.ContainerListener;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLStreamHandler;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,13 @@ public class StandardContext extends ContainerBase implements Context {
     private Map<String,ApplicationFilterConfig> filterConfigs = new ConcurrentHashMap<>();
     private Map<String,FilterDef> filterDefs = new ConcurrentHashMap<>();
     private FilterMap filterMaps[] = new FilterMap[0];
+
+    private ArrayList<ContainerListenerDef> listenerDefs = new ArrayList<>();
+    private ArrayList<ContainerListener> listeners = new ArrayList<>();
+
+    public void start(){
+        fireContainerEvent("Container Started",this);
+    }
 
     public StandardContext() {
         super();
@@ -130,6 +138,27 @@ public class StandardContext extends ContainerBase implements Context {
     @Override
     public void reload() {
     }
+
+
+    public void removeContainerListener(ContainerListener listener) {
+        synchronized (listeners) {
+            listeners.remove(listener);
+        }
+    }
+
+    public void fireContainerEvent(String type, Object data) {
+        if (listeners.size() < 1)
+            return;
+        ContainerEvent event = new ContainerEvent(this, type, data);
+        ContainerListener list[] = new ContainerListener[0];
+        synchronized (listeners) {
+            list = (ContainerListener[]) listeners.toArray(list);
+        }
+        for (int i = 0; i < list.length; i++)
+            ((ContainerListener) list[i]).containerEvent(event);
+
+    }
+
 
     public void addFilterDef(FilterDef filterDef) {
         filterDefs.put(filterDef.getFilterName(), filterDef);
@@ -242,5 +271,48 @@ public class StandardContext extends ContainerBase implements Context {
             return (false);
     }
 
+    public void addContainerListener(ContainerListener listener) {
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
+    }
 
+    public boolean listenerStart() {
+        System.out.println("Listener Start..........");
+        boolean ok = true;
+        synchronized (listeners) {
+            listeners.clear();
+            Iterator<ContainerListenerDef> defs = listenerDefs.iterator();
+            while (defs.hasNext()) {
+                ContainerListenerDef def = defs.next();
+                ContainerListener listener = null;
+                try {
+                    // Identify the class loader we will be using
+                    String listenerClass = def.getListenerClass();
+                    ClassLoader classLoader = null;
+                    classLoader = this.getLoader();
+
+                    ClassLoader oldCtxClassLoader =
+                            Thread.currentThread().getContextClassLoader();
+
+                    // Instantiate a new instance of this filter and return it
+                    Class<?> clazz = classLoader.loadClass(listenerClass);
+                    listener = (ContainerListener) clazz.newInstance();
+
+                    addContainerListener(listener);
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    ok = false;
+                }
+            }
+        }
+
+        return (ok);
+    }
+
+    public void addListenerDef(ContainerListenerDef listenererDef) {
+        synchronized (listenerDefs) {
+            listenerDefs.add(listenererDef);
+        }
+    }
 }
